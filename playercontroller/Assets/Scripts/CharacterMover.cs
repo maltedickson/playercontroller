@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterMover : MonoBehaviour
+public class CharacterMover : MonoBehaviour, ICharacterMover
 {
 
     public Vector3 Velocity { get; private set; }

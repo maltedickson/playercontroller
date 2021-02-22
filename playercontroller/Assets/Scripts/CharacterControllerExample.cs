@@ -4,12 +4,12 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-[RequireComponent(typeof(CharacterMover))]
+[RequireComponent(typeof(ICharacterMover))]
 public class CharacterControllerExample : MonoBehaviour
 {
 
     private Controls _controls;
-    private CharacterMover _mover = null;
+    private ICharacterMover _mover = null;
 
     [Header("Ground Movement")]
     [SerializeField] private float _moveSpeed = 6f;
@@ -36,7 +36,7 @@ public class CharacterControllerExample : MonoBehaviour
 
     private void Awake()
     {
-        _mover = GetComponent<CharacterMover>();
+        _mover = GetComponent<ICharacterMover>();
 
         SetupControls();
         SetupCamera();
