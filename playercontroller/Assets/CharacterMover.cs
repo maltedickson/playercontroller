@@ -1,8 +1,9 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterMover : MonoBehaviour, ICharacterMover
+public class CharacterMover : MonoBehaviour
 {
-    #region "Variables"
 
     public Vector3 Velocity { get; private set; }
     public bool IsGrounded { get; private set; }
@@ -16,8 +17,6 @@ public class CharacterMover : MonoBehaviour, ICharacterMover
 
     [SerializeField] private float _maxStepUpHeight = 0.3f;
     [SerializeField] private float _maxStepDownHeight = 0.4f;
-
-    #endregion
 
     private void Awake()
     {
@@ -65,13 +64,12 @@ public class CharacterMover : MonoBehaviour, ICharacterMover
         if (IsGrounded)
         {
             IsGrounded = false;
-
-            MoveOut(ref newPos, true);
+            MoveOutPartial(ref newPos);
             MoveUp(ref newPos);
         }
         else
         {
-            MoveOut(ref newPos, false);
+            MoveOutFull(ref newPos);
         }
 
         if (_wasGrounded && wishVel.y <= 0f)
@@ -85,17 +83,17 @@ public class CharacterMover : MonoBehaviour, ICharacterMover
         transform.position = newPos;
     }
 
-    private void MoveOut(ref Vector3 newPos, bool isPartial)
+    private void MoveOutPartial(ref Vector3 newPos)
     {
         _colliderTransform.rotation = Quaternion.identity;
-        _collider.height = (isPartial ? (_height - _maxStepUpHeight) : (_height));
-        _collider.center = Vector3.up * (isPartial ? (_height + _maxStepUpHeight) : (_height)) / 2f;
+        _collider.height = _height - _maxStepUpHeight;
+        _collider.center = Vector3.up * (_height + _maxStepUpHeight) / 2f;
 
         Collider[] neighbours = new Collider[128];
 
         int count = Physics.OverlapCapsuleNonAlloc(
             newPos + Vector3.up * (_height - _radius),
-            newPos + Vector3.up * (isPartial ? (_maxStepUpHeight + _radius) : (_radius)),
+            newPos + Vector3.up * (_maxStepUpHeight + _radius),
             _radius,
             neighbours
         );
@@ -121,11 +119,50 @@ public class CharacterMover : MonoBehaviour, ICharacterMover
                 out direction, out distance
             );
 
-            if (isPartial && overlapped)
+            if (overlapped)
             {
                 newPos += direction * distance;
             }
-            else if (!isPartial && overlapped)
+        }
+    }
+
+    private void MoveOutFull(ref Vector3 newPos)
+    {
+        _colliderTransform.rotation = Quaternion.identity;
+        _collider.height = _height;
+        _collider.center = Vector3.up * _height / 2f;
+
+        Collider[] neighbours = new Collider[128];
+
+        int count = Physics.OverlapCapsuleNonAlloc(
+            newPos + Vector3.up * (_height - _radius),
+            newPos + Vector3.up * _radius,
+            _radius,
+            neighbours
+        );
+
+        var thisCollider = _colliderTransform.GetComponent<Collider>();
+
+        for (int i = 0; i < count; ++i)
+        {
+            var collider = neighbours[i];
+
+            if (collider == thisCollider)
+                continue;
+
+            Vector3 otherPosition = collider.transform.position;
+            Quaternion otherRotation = collider.transform.rotation;
+
+            Vector3 direction;
+            float distance;
+
+            bool overlapped = Physics.ComputePenetration(
+                thisCollider, newPos, Quaternion.identity,
+                collider, otherPosition, otherRotation,
+                out direction, out distance
+            );
+
+            if (overlapped)
             {
                 newPos += direction * distance;
 
@@ -155,8 +192,7 @@ public class CharacterMover : MonoBehaviour, ICharacterMover
             }
             else
             {
-                MoveOut(ref newPos, false);
-
+                MoveOutFull(ref newPos);
                 IsGrounded = false;
             }
         }
