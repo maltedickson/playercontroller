@@ -2419,7 +2419,6 @@ MonoBehaviour:
   _radius: 0.5
   _maxStepUpHeight: 0.3
   _maxStepDownHeight: 0.4
-  _slopeLimit: 50
 --- !u!4 &389796142
 Transform:
   m_ObjectHideFlags: 0
