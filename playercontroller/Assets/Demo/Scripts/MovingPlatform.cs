@@ -12,11 +12,13 @@ public class MovingPlatform : MonoBehaviour
     private int _targetIndex = 0;
     private List<Rigidbody> _rigidbodies = new List<Rigidbody>();
 
-    private Transform _transform = null;
+    private Rigidbody _rb = null;
 
     private void Awake()
     {
-        _transform = transform;
+        _rb = GetComponent<Rigidbody>();
+        if (_rb == null)
+            _rb = gameObject.AddComponent<Rigidbody>();
     }
 
     private void Start()
@@ -27,6 +29,8 @@ public class MovingPlatform : MonoBehaviour
             if (pointTransform == null) continue;
             _points.Add(pointTransform.position);
         }
+
+        _rb.isKinematic = true;
     }
 
     private void FixedUpdate()
@@ -36,17 +40,16 @@ public class MovingPlatform : MonoBehaviour
         if (_targetIndex >= _points.Count)
             _targetIndex = 0;
 
-        Vector3 newPos = Vector3.MoveTowards(_transform.position, _points[_targetIndex], _speed * Time.fixedDeltaTime);
-        Vector3 movement = newPos - _transform.position;
-        _transform.position = newPos;
+        Vector3 newPos = Vector3.MoveTowards(_rb.position, _points[_targetIndex], _speed * Time.fixedDeltaTime);
+        Vector3 movement = newPos - _rb.position;
+        _rb.position = _rb.position + movement;
 
         foreach (Rigidbody rb in _rigidbodies)
         {
-            Transform rbTransform = rb.transform;
-            rbTransform.position = rbTransform.position + movement;
+            rb.position = rb.position + movement;
         }
 
-        if (_transform.position == _points[_targetIndex])
+        if (_rb.position == _points[_targetIndex])
             _targetIndex++;
     }
 
