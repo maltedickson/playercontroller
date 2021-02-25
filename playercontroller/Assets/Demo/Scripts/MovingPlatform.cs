@@ -8,9 +8,8 @@ public class MovingPlatform : MonoBehaviour
     [SerializeField] private float _speed = 4f;
 
     [SerializeField] private Transform[] _pointTransforms = null;
-    private Vector3[] _points = null;
+    private List<Vector3> _points;
     private int _targetIndex = 0;
-
     private List<Rigidbody> _rigidbodies = new List<Rigidbody>();
 
     private Transform _transform = null;
@@ -22,23 +21,24 @@ public class MovingPlatform : MonoBehaviour
 
     private void Start()
     {
-        _points = new Vector3[_pointTransforms.Length];
-        for (int i = 0; i < _pointTransforms.Length; i++)
+        _points = new List<Vector3>(_pointTransforms.Length);
+        foreach (Transform pointTransform in _pointTransforms)
         {
-            _points[i] = _pointTransforms[i].position;
+            if (pointTransform == null) continue;
+            _points.Add(pointTransform.position);
         }
     }
 
     private void FixedUpdate()
     {
-        if (_points.Length == 0) return;
+        if (_points.Count == 0) return;
 
-        if (_targetIndex >= _points.Length)
+        if (_targetIndex >= _points.Count)
             _targetIndex = 0;
 
         Vector3 newPos = Vector3.MoveTowards(_transform.position, _points[_targetIndex], _speed * Time.fixedDeltaTime);
-
         Vector3 movement = newPos - _transform.position;
+        _transform.position = newPos;
 
         foreach (Rigidbody rb in _rigidbodies)
         {
@@ -46,33 +46,23 @@ public class MovingPlatform : MonoBehaviour
             rbTransform.position = rbTransform.position + movement;
         }
 
-        _transform.position = newPos;
-
         if (_transform.position == _points[_targetIndex])
             _targetIndex++;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!IsCollisionOnTop(collision)) return;
-
         Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
-
-        if (rb == null) return;
-        if (rb.isKinematic) return;
-        if (_rigidbodies.Contains(rb)) return;
-
+        if (rb == null || rb.isKinematic || _rigidbodies.Contains(rb) || !IsCollisionOnTop(collision)) return;
         _rigidbodies.Add(rb);
     }
 
     private bool IsCollisionOnTop(Collision collision)
     {
-        bool isCollisionOnTop = false;
         foreach (ContactPoint contact in collision.contacts)
-        {
-            if (contact.normal.y < 0f) isCollisionOnTop = true;
-        }
-        return isCollisionOnTop;
+            if (contact.normal.y < 0f) return true;
+
+        return false;
     }
 
     private void OnCollisionExit(Collision collision)
