@@ -265,12 +265,13 @@ public class DynamicRbMovement : MonoBehaviour
                 | RigidbodyConstraints.FreezePositionY;
 
             RaycastHit hit;
-            Vector3 checkStart = transform.position + transform.forward * -0.1f;
+            Vector3 moveDir = _rb.velocity.normalized;
+            Vector3 checkStart = transform.position + moveDir * -0.1f;
             bool isObjectInFront = Physics.CapsuleCast(
                 checkStart + Vector3.up * _radius,
                 checkStart + Vector3.up * (_height - _radius),
                 _radius,
-                _rb.velocity.normalized,
+                moveDir,
                 out hit,
                 _rb.velocity.magnitude * Time.fixedDeltaTime + 0.1f,
                 ~0,
