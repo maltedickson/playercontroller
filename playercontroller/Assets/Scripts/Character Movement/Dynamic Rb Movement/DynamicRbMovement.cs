@@ -30,6 +30,7 @@ public class DynamicRbMovement : MonoBehaviour
     [SerializeField] private float _maxStepDownHeight = 0.4f;
     private bool _isGrounded = false;
     private bool _wasGrounded = false;
+    private bool _tryStepStair = false;
 
     [Header("Mouse Look")]
     [SerializeField] private float _mouseSensitivity = 0.05f;
@@ -74,7 +75,7 @@ public class DynamicRbMovement : MonoBehaviour
         _rb.isKinematic = false;
         _rb.interpolation = RigidbodyInterpolation.None;
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        _rb.constraints = RigidbodyConstraints.FreezeRotation;
+        _rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
     }
 
     private void SetupCollider()
@@ -178,9 +179,11 @@ public class DynamicRbMovement : MonoBehaviour
         Vector2 moveInput = _controls.Gameplay.Move.ReadValue<Vector2>();
         Vector3 wishDir = transform.right * moveInput.x + transform.forward * moveInput.y;
         Vector3 wishVel = wishDir * _moveSpeed;
-        newVelocity = Accelerate(newVelocity, wishVel, _isGrounded, Time.fixedDeltaTime);
+        newVelocity = Accelerate(newVelocity, wishVel);
 
         _rb.velocity = newVelocity;
+
+        PreparePhysics();
 
         _isGrounded = false;
     }
@@ -221,12 +224,12 @@ public class DynamicRbMovement : MonoBehaviour
         return currentVel;
     }
 
-    private Vector3 Accelerate(Vector3 currentVel, Vector3 wishVel, bool isGrounded, float deltaTime)
+    private Vector3 Accelerate(Vector3 currentVel, Vector3 wishVel)
     {
-        if (isGrounded)
+        if (_isGrounded)
         {
             Vector3 horVel = new Vector3(currentVel.x, 0f, currentVel.z);
-            Vector3 horVelAfterAcceleration = horVel + wishVel * _maxAcceleration * Time.deltaTime;
+            Vector3 horVelAfterAcceleration = horVel + wishVel * _maxAcceleration * Time.fixedDeltaTime;
             Vector3 clampedHorVelAfterAcceleration = Vector3.ClampMagnitude(horVelAfterAcceleration, _moveSpeed);
             return new Vector3(
                 clampedHorVelAfterAcceleration.x,
@@ -239,7 +242,7 @@ public class DynamicRbMovement : MonoBehaviour
             Vector3 horVel = new Vector3(currentVel.x, 0f, currentVel.z);
             float speed = horVel.magnitude;
             float currentSpeedInWishDir = Vector3.Dot(horVel, wishVel);
-            float addSpeed = Mathf.Clamp(_moveSpeed - currentSpeedInWishDir, 0f, _maxAccelerationInAir * Time.deltaTime);
+            float addSpeed = Mathf.Clamp(_moveSpeed - currentSpeedInWishDir, 0f, _maxAccelerationInAir * Time.fixedDeltaTime);
             Vector3 horVelAfterAcceleration = horVel + wishVel * addSpeed;
 
             Vector3 clampedHorVelAfterAcceleration = Vector3.ClampMagnitude(horVelAfterAcceleration, Mathf.Max(speed, _moveSpeed));
@@ -249,6 +252,67 @@ public class DynamicRbMovement : MonoBehaviour
                 clampedHorVelAfterAcceleration.z
             );
         }
+    }
+
+    private void PreparePhysics()
+    {
+        SetColliderHeight(_height);
+
+        if (_isGrounded)
+        {
+            _rb.constraints
+                = RigidbodyConstraints.FreezeRotation
+                | RigidbodyConstraints.FreezePositionY;
+
+            RaycastHit hit;
+            Vector3 checkStart = transform.position + transform.forward * -0.1f;
+            bool isObjectInFront = Physics.CapsuleCast(
+                checkStart + Vector3.up * _radius,
+                checkStart + Vector3.up * (_height - _radius),
+                _radius,
+                _rb.velocity.normalized,
+                out hit,
+                _rb.velocity.magnitude * Time.fixedDeltaTime + 0.1f,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
+            if (isObjectInFront)
+            {
+                Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
+                if (rb == null)
+                {
+                    Vector3 newPos = transform.position + _rb.velocity * Time.fixedDeltaTime;
+                    float margin = 0.01f;
+                    RaycastHit groundHit;
+                    bool wouldBeInGround = Physics.SphereCast(
+                        newPos + Vector3.up * (_maxStepUpHeight + _radius + margin),
+                        _radius,
+                        Vector3.down,
+                        out groundHit,
+                        _maxStepUpHeight + margin,
+                        ~0,
+                        QueryTriggerInteraction.Ignore
+                    );
+                    if (wouldBeInGround)
+                    {
+                        if (groundHit.point.y - transform.position.y <= _maxStepUpHeight)
+                        {
+                            SetColliderHeight(_height - _maxStepUpHeight);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            _rb.constraints = RigidbodyConstraints.FreezeRotation;
+        }
+    }
+
+    private void SetColliderHeight(float height)
+    {
+        _collider.height = height;
+        _collider.center = Vector3.up * (_height - height / 2f);
     }
 
     #endregion
@@ -277,6 +341,75 @@ public class DynamicRbMovement : MonoBehaviour
     private void Update()
     {
         _mouseDelta += _controls.Gameplay.Look.ReadValue<Vector2>();
+
+        MoveUp();
+
+        StickToGround();
+        _wasGrounded = _isGrounded;
+    }
+
+    private void MoveUp()
+    {
+        float margin = 0.01f;
+        RaycastHit hit;
+        bool isInGround = Physics.SphereCast(
+            transform.position + Vector3.up * (_maxStepUpHeight + _radius + margin),
+            _radius,
+            Vector3.down,
+            out hit,
+            _maxStepUpHeight + margin,
+            ~0,
+            QueryTriggerInteraction.Ignore
+        );
+
+        if (isInGround)
+        {
+            if (hit.point.y - transform.position.y <= _maxStepUpHeight)
+            {
+                transform.position = transform.position + Vector3.up * (_maxStepUpHeight + margin - hit.distance);
+                _isGrounded = true;
+            }
+        }
+    }
+
+    private void StickToGround()
+    {
+        if (!_wasGrounded || _rb.velocity.y > 0f) return;
+
+        float margin = 0.01f;
+        RaycastHit hit;
+        bool isGroundBelow = Physics.SphereCast(
+            transform.position + Vector3.up * (_radius + margin),
+            _radius,
+            Vector3.down,
+            out hit,
+            _maxStepDownHeight + margin,
+            ~0,
+            QueryTriggerInteraction.Ignore
+        );
+        bool isGroundBelowCenter = Physics.Raycast(
+            transform.position + Vector3.up * margin,
+            Vector3.down,
+            _maxStepDownHeight + margin,
+            ~0,
+            QueryTriggerInteraction.Ignore
+        );
+
+        if (!isGroundBelow || !isGroundBelowCenter) return;
+
+        Vector3 newPos = transform.position + Vector3.down * Mathf.Max(0f, (hit.distance * 0.9f - margin));
+        Collider[] collidersAtNewPos = Physics.OverlapCapsule(
+            newPos + Vector3.up * _radius,
+            newPos + Vector3.up * (_height - _radius),
+            _radius,
+            ~0,
+            QueryTriggerInteraction.Ignore
+        );
+
+        if (collidersAtNewPos.Length > 1) return;
+
+        transform.position = newPos;
+        _isGrounded = true;
     }
 
     #endregion
