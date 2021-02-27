@@ -140,12 +140,18 @@ public class DynamicRbMovement : MonoBehaviour
     private void Start()
     {
         LockCursor();
+        LimitMaxStepUpHeight();
     }
 
     private void LockCursor()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    private void LimitMaxStepUpHeight()
+    {
+        _maxStepUpHeight = Mathf.Min(_maxStepUpHeight, _radius);
     }
 
     #endregion
