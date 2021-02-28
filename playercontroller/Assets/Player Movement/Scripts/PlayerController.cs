@@ -41,88 +41,111 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        GetInfoFromMover();
+
+        Gravity();
+
+        Jump();
+
+        Friction();
+
+        Acceleration();
+
+        Move();
+    }
+
+    void GetInfoFromMover()
+    {
         isGrounded = mover.IsGrounded;
 
-        Vector3 previousVelocity = rb.velocity;
+        velocity = rb.velocity;
         if (isGrounded)
-            previousVelocity.y = 0f;
+            velocity.y = 0f;
+    }
 
-        Vector3 newVelocity = previousVelocity;
+    void Gravity()
+    {
+        if (isGrounded) return;
 
-        if (!isGrounded)
-            newVelocity = ApplyGravity(newVelocity, Time.fixedDeltaTime);
+        velocity += Vector3.up * config.gravity * Time.fixedDeltaTime;
+    }
 
-        if (isGrounded && _isJumpButtonDown)
-        {
-            isGrounded = false;
-            newVelocity = Jump(newVelocity, Time.fixedDeltaTime);
-        }
+    void Jump()
+    {
+        if (!isGrounded || !_isJumpButtonDown) return;
 
-        if (isGrounded)
-            newVelocity = ApplyFriction(newVelocity, Time.fixedDeltaTime);
+        isGrounded = false;
+        velocity.y = Mathf.Sqrt(config.jumpHeight * 2f * -config.gravity);
+    }
 
+    void Friction()
+    {
+        if (!isGrounded) return;
+
+        Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
+
+        float speed = horVel.magnitude;
+        if (speed == 0f) return;
+
+        float drop = speed / config.friction * Time.fixedDeltaTime;
+
+        Vector3 newHorVel = horVel * Mathf.Max(speed - drop, 0f) / speed;
+
+        velocity = new Vector3(newHorVel.x, velocity.y, newHorVel.z);
+    }
+
+    void Acceleration()
+    {
         Vector2 moveInput = _controls.Gameplay.Move.ReadValue<Vector2>();
         Vector3 wishDir = transform.right * moveInput.x + transform.forward * moveInput.y;
         Vector3 wishVel = wishDir * config.moveSpeed;
-        newVelocity = Accelerate(newVelocity, wishVel);
 
-        mover.IsGrounded = isGrounded;
-        mover.Move(newVelocity);
-    }
-
-    Vector3 ApplyGravity(Vector3 currentVel, float deltaTime)
-    {
-        return currentVel + Vector3.up * config.gravity * Time.fixedDeltaTime;
-    }
-
-    Vector3 Jump(Vector3 currentVel, float deltaTime)
-    {
-        return currentVel + Vector3.up * Mathf.Sqrt(config.jumpHeight * 2f * -config.gravity);
-    }
-
-    Vector3 ApplyFriction(Vector3 currentVel, float deltaTime)
-    {
-        Vector3 horVel = new Vector3(currentVel.x, 0f, currentVel.z);
-
-        float speed = horVel.magnitude;
-        if (speed != 0f)
-        {
-            float drop = speed / config.friction * deltaTime;
-            Vector3 newHorVel = horVel * Mathf.Max(speed - drop, 0f) / speed;
-            return new Vector3(newHorVel.x, currentVel.y, newHorVel.z);
-        }
-
-        return currentVel;
-    }
-
-    Vector3 Accelerate(Vector3 currentVel, Vector3 wishVel)
-    {
         if (isGrounded)
+            GroundAcceleration();
+        else
+            AirAcceleration();
+
+        void GroundAcceleration()
         {
-            Vector3 horVel = new Vector3(currentVel.x, 0f, currentVel.z);
+            Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
+
             Vector3 horVelAfterAcceleration = horVel + wishVel * config.maxAcceleration * Time.fixedDeltaTime;
+
             Vector3 clampedHorVelAfterAcceleration = Vector3.ClampMagnitude(horVelAfterAcceleration, config.moveSpeed);
-            return new Vector3(
+
+            velocity = new Vector3(
                 clampedHorVelAfterAcceleration.x,
-                currentVel.y,
+                velocity.y,
                 clampedHorVelAfterAcceleration.z
             );
         }
-        else
+
+        void AirAcceleration()
         {
-            Vector3 horVel = new Vector3(currentVel.x, 0f, currentVel.z);
+            Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
+
             float speed = horVel.magnitude;
+
             float currentSpeedInWishDir = Vector3.Dot(horVel, wishVel);
+
             float addSpeed = Mathf.Clamp(config.moveSpeed - currentSpeedInWishDir, 0f, config.maxAccelerationInAir * Time.fixedDeltaTime);
+
             Vector3 horVelAfterAcceleration = horVel + wishVel * addSpeed;
 
             Vector3 clampedHorVelAfterAcceleration = Vector3.ClampMagnitude(horVelAfterAcceleration, Mathf.Max(speed, config.moveSpeed));
-            return new Vector3(
+
+            velocity = new Vector3(
                 clampedHorVelAfterAcceleration.x,
-                currentVel.y,
+                velocity.y,
                 clampedHorVelAfterAcceleration.z
             );
         }
+    }
+
+    void Move()
+    {
+        mover.IsGrounded = isGrounded;
+        mover.Move(velocity);
     }
 
 }

@@ -69,6 +69,9 @@ public class PlayerMover : MonoBehaviour
         config.maxStepUpHeight = Mathf.Min(config.maxStepUpHeight, config.radius);
     }
 
+    /// <summary>
+    /// Should be called exactly one time in every FixedUpdate loop
+    /// </summary>
     public void Move(Vector3 newVelocity)
     {
         rb.velocity = newVelocity;
