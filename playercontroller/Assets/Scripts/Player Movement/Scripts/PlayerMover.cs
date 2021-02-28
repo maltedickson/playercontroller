@@ -79,63 +79,73 @@ public class PlayerMover : MonoBehaviour
     void PreparePhysics()
     {
         SetColliderHeight(config.height);
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-        if (IsGrounded)
+        if (!IsGrounded) return;
+
+        rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+
+        if (!ShouldStepUp()) return;
+
+        SetColliderHeight(config.height - config.maxStepUpHeight);
+
+
+        void SetColliderHeight(float height)
         {
-            rb.constraints
-                = RigidbodyConstraints.FreezeRotation
-                | RigidbodyConstraints.FreezePositionY;
+            collider.height = height;
+            collider.center = Vector3.up * (config.height - height / 2f);
+        }
 
+        bool ShouldStepUp()
+        {
             RaycastHit hit;
-            Vector3 moveDir = rb.velocity.normalized;
-            Vector3 checkStart = transform.position + moveDir * -0.1f;
-            bool isObjectInFront = Physics.CapsuleCast(
-                checkStart + Vector3.up * config.radius,
-                checkStart + Vector3.up * (config.height - config.radius),
-                config.radius,
-                moveDir,
-                out hit,
-                rb.velocity.magnitude * Time.fixedDeltaTime + 0.1f,
-                ~0,
-                QueryTriggerInteraction.Ignore
-            );
-            if (isObjectInFront)
+            if (!IsObjectInFront(out hit)) return false;
+
+            Rigidbody otherRb = hit.transform.GetComponent<Rigidbody>();
+            if (otherRb != null) return false;
+
+            RaycastHit groundHit;
+            if (!WouldBeInGround(out groundHit)) return false;
+
+            bool isObstacleTooHigh = groundHit.point.y - transform.position.y > config.maxStepUpHeight;
+            if (isObstacleTooHigh) return false;
+
+            return true;
+
+
+            bool IsObjectInFront(out RaycastHit hit)
             {
-                Rigidbody otherRb = hit.transform.GetComponent<Rigidbody>();
-                if (otherRb == null)
-                {
-                    Vector3 newPos = transform.position + rb.velocity * Time.fixedDeltaTime;
-                    float margin = 0.01f;
-                    RaycastHit groundHit;
-                    bool wouldBeInGround = Physics.SphereCast(
-                        newPos + Vector3.up * (config.maxStepUpHeight + config.radius + margin),
-                        config.radius,
-                        Vector3.down,
-                        out groundHit,
-                        config.maxStepUpHeight + margin,
-                        ~0,
-                        QueryTriggerInteraction.Ignore
-                    );
-                    if (wouldBeInGround)
-                    {
-                        if (groundHit.point.y - transform.position.y <= config.maxStepUpHeight)
-                        {
-                            SetColliderHeight(config.height - config.maxStepUpHeight);
-                        }
-                    }
-                }
+                Vector3 moveDir = rb.velocity.normalized;
+
+                Vector3 checkStart = transform.position + moveDir * -0.1f;
+
+                return Physics.CapsuleCast(
+                    checkStart + Vector3.up * config.radius,
+                    checkStart + Vector3.up * (config.height - config.radius),
+                    config.radius,
+                    moveDir,
+                    out hit,
+                    rb.velocity.magnitude * Time.fixedDeltaTime + 0.1f,
+                    ~0,
+                    QueryTriggerInteraction.Ignore
+                );
+            }
+
+            bool WouldBeInGround(out RaycastHit hit)
+            {
+                Vector3 newPos = transform.position + rb.velocity * Time.fixedDeltaTime;
+                float margin = 0.01f;
+                return Physics.SphereCast(
+                    newPos + Vector3.up * (config.maxStepUpHeight + config.radius + margin),
+                    config.radius,
+                    Vector3.down,
+                    out hit,
+                    config.maxStepUpHeight + margin,
+                    ~0,
+                    QueryTriggerInteraction.Ignore
+                );
             }
         }
-        else
-        {
-            rb.constraints = RigidbodyConstraints.FreezeRotation;
-        }
-    }
-
-    void SetColliderHeight(float height)
-    {
-        collider.height = height;
-        collider.center = Vector3.up * (config.height - height / 2f);
     }
 
     void OnCollisionStay(Collision collision)
