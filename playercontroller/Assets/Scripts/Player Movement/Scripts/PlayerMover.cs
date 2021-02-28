@@ -69,9 +69,6 @@ public class PlayerMover : MonoBehaviour
         config.maxStepUpHeight = Mathf.Min(config.maxStepUpHeight, config.radius);
     }
 
-    /// <summary>
-    /// Should be called exactly one time in every FixedUpdate loop
-    /// </summary>
     public void Move(Vector3 newVelocity)
     {
         rb.velocity = newVelocity;
@@ -106,10 +103,10 @@ public class PlayerMover : MonoBehaviour
             );
             if (isObjectInFront)
             {
-                Rigidbody rb = hit.transform.GetComponent<Rigidbody>();
-                if (rb == null)
+                Rigidbody otherRb = hit.transform.GetComponent<Rigidbody>();
+                if (otherRb == null)
                 {
-                    Vector3 newPos = transform.position + this.rb.velocity * Time.fixedDeltaTime;
+                    Vector3 newPos = transform.position + rb.velocity * Time.fixedDeltaTime;
                     float margin = 0.01f;
                     RaycastHit groundHit;
                     bool wouldBeInGround = Physics.SphereCast(
@@ -160,6 +157,8 @@ public class PlayerMover : MonoBehaviour
 
         StickToGround();
         wasGrounded = IsGrounded;
+
+        Velocity = rb.velocity;
     }
 
     void MoveUp()
@@ -176,14 +175,12 @@ public class PlayerMover : MonoBehaviour
             QueryTriggerInteraction.Ignore
         );
 
-        if (isInGround)
-        {
-            if (hit.point.y - transform.position.y <= config.maxStepUpHeight)
-            {
-                transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
-                IsGrounded = true;
-            }
-        }
+        if (!isInGround) return;
+
+        if (hit.point.y - transform.position.y > config.maxStepUpHeight) return;
+
+        transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
+        IsGrounded = true;
     }
 
     void StickToGround()

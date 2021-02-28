@@ -8,10 +8,8 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] PlayerControllerConfig config = null;
 
-    Vector2 moveInput = Vector2.zero;
-
-    Controls _controls = null;
-    bool _isJumpButtonDown = false;
+    Controls controls = null;
+    bool isJumpButtonDown = false;
 
     PlayerMover mover = null;
 
@@ -19,24 +17,20 @@ public class PlayerController : MonoBehaviour
     bool isGrounded = false;
     bool wasGrounded = false;
 
-    Rigidbody rb = null;
-
     void Awake()
     {
-        _controls = new Controls();
+        controls = new Controls();
 
         mover = GetComponent<PlayerMover>();
     }
 
-    void OnEnable() => _controls.Enable();
-    void OnDisable() => _controls.Disable();
+    void OnEnable() => controls.Enable();
+    void OnDisable() => controls.Disable();
 
     void Start()
     {
-        _controls.Gameplay.JumpDown.performed += _ => _isJumpButtonDown = true;
-        _controls.Gameplay.JumpUp.performed += _ => _isJumpButtonDown = false;
-
-        rb = GetComponent<Rigidbody>();
+        controls.Gameplay.JumpDown.performed += _ => isJumpButtonDown = true;
+        controls.Gameplay.JumpUp.performed += _ => isJumpButtonDown = false;
     }
 
     void FixedUpdate()
@@ -58,7 +52,7 @@ public class PlayerController : MonoBehaviour
     {
         isGrounded = mover.IsGrounded;
 
-        velocity = rb.velocity;
+        velocity = mover.Velocity;
         if (isGrounded)
             velocity.y = 0f;
     }
@@ -72,7 +66,7 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        if (!isGrounded || !_isJumpButtonDown) return;
+        if (!isGrounded || !isJumpButtonDown) return;
 
         isGrounded = false;
         velocity.y = Mathf.Sqrt(config.jumpHeight * 2f * -config.gravity);
@@ -96,7 +90,7 @@ public class PlayerController : MonoBehaviour
 
     void Acceleration()
     {
-        Vector2 moveInput = _controls.Gameplay.Move.ReadValue<Vector2>();
+        Vector2 moveInput = controls.Gameplay.Move.ReadValue<Vector2>();
         Vector3 wishDir = transform.right * moveInput.x + transform.forward * moveInput.y;
         Vector3 wishVel = wishDir * config.moveSpeed;
 
