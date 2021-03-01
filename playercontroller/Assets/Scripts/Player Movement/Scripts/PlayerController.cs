@@ -25,7 +25,6 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         controls.Gameplay.JumpDown.performed += _ => isJumpButtonDown = true;
-        controls.Gameplay.JumpUp.performed += _ => isJumpButtonDown = false;
     }
 
     void FixedUpdate()
@@ -58,7 +57,10 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        if (!mover.isGrounded || !isJumpButtonDown) return;
+        if (!isJumpButtonDown) return;
+        isJumpButtonDown = false;
+
+        if (!mover.isGrounded) return;
 
         velocity.y = Mathf.Sqrt(config.jumpHeight * 2f * -config.gravity);
     }
