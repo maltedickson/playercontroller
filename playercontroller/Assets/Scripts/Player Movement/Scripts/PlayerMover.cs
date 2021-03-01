@@ -2,16 +2,17 @@ using UnityEngine;
 
 public class PlayerMover : MonoBehaviour
 {
-
     [SerializeField] PlayerMoverConfig config = null;
 
     CapsuleCollider collider = null;
     Rigidbody rb = null;
 
-    [HideInInspector] public Vector3 Velocity = Vector3.zero;
+    [HideInInspector] public Vector3 velocity { get; private set; }
 
-    [HideInInspector] public bool IsGrounded = false;
+    [HideInInspector] public bool isGrounded { get; private set; }
     bool wasGrounded = false;
+
+    bool wasFixedUpdateThisFrame = false;
 
     void Awake()
     {
@@ -49,7 +50,7 @@ public class PlayerMover : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation.None;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-        rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
     }
 
     void SetupCollider()
@@ -69,11 +70,19 @@ public class PlayerMover : MonoBehaviour
 
     public void Move(Vector3 newVelocity)
     {
-        rb.velocity = newVelocity;
+        wasFixedUpdateThisFrame = true;
+
+        velocity = newVelocity;
+        rb.velocity = velocity;
+
+        if (velocity.y > 0f)
+        {
+            isGrounded = false;
+        }
 
         PreparePhysics();
 
-        IsGrounded = false;
+        isGrounded = false;
     }
 
     void PreparePhysics()
@@ -81,7 +90,7 @@ public class PlayerMover : MonoBehaviour
         SetColliderHeight(config.height);
         rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-        if (!IsGrounded) return;
+        if (!isGrounded) return;
 
         rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
 
@@ -148,29 +157,34 @@ public class PlayerMover : MonoBehaviour
         }
     }
 
-    void OnCollisionStay(Collision collision)
+    void OnCollisionStay(Collision other)
     {
-        foreach (ContactPoint contact in collision.contacts)
+        if (velocity.y > 0f) return;
+
+        foreach (ContactPoint contact in other.contacts)
         {
             if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit)
             {
-                IsGrounded = true;
+                isGrounded = true;
             }
         }
     }
 
     void Update()
     {
+        if (!wasFixedUpdateThisFrame) return;
+        wasFixedUpdateThisFrame = false;
+
         MoveUp();
 
         StickToGround();
-        wasGrounded = IsGrounded;
-
-        Velocity = rb.velocity;
+        wasGrounded = isGrounded;
     }
 
     void MoveUp()
     {
+        if (velocity.y > 0f) return;
+
         float margin = 0.01f;
         RaycastHit hit;
         bool isInGround = Physics.SphereCast(
@@ -188,12 +202,12 @@ public class PlayerMover : MonoBehaviour
         if (hit.point.y - transform.position.y > config.maxStepUpHeight) return;
 
         transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
-        IsGrounded = true;
+        isGrounded = true;
     }
 
     void StickToGround()
     {
-        if (!wasGrounded || rb.velocity.y > 0f) return;
+        if (!wasGrounded || velocity.y > 0f) return;
 
         float margin = 0.01f;
         RaycastHit hit;
@@ -228,7 +242,6 @@ public class PlayerMover : MonoBehaviour
         if (collidersAtNewPos.Length > 1) return;
 
         transform.position = newPos;
-        IsGrounded = true;
+        isGrounded = true;
     }
-
 }

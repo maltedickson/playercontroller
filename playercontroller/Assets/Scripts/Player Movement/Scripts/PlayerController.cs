@@ -3,7 +3,6 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerMover))]
 public class PlayerController : MonoBehaviour
 {
-
     [SerializeField] PlayerControllerConfig config = null;
 
     Controls controls = null;
@@ -12,8 +11,6 @@ public class PlayerController : MonoBehaviour
     PlayerMover mover = null;
 
     Vector3 velocity = Vector3.zero;
-    bool isGrounded = false;
-    bool wasGrounded = false;
 
     void Awake()
     {
@@ -48,31 +45,27 @@ public class PlayerController : MonoBehaviour
 
     void GetInfoFromMover()
     {
-        isGrounded = mover.IsGrounded;
-
-        velocity = mover.Velocity;
-        if (isGrounded)
+        if (mover.isGrounded)
             velocity.y = 0f;
     }
 
     void Gravity()
     {
-        if (isGrounded) return;
+        if (mover.isGrounded) return;
 
         velocity += Vector3.up * config.gravity * Time.fixedDeltaTime;
     }
 
     void Jump()
     {
-        if (!isGrounded || !isJumpButtonDown) return;
+        if (!mover.isGrounded || !isJumpButtonDown) return;
 
-        isGrounded = false;
         velocity.y = Mathf.Sqrt(config.jumpHeight * 2f * -config.gravity);
     }
 
     void Friction()
     {
-        if (!isGrounded) return;
+        if (!mover.isGrounded) return;
 
         Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
 
@@ -92,7 +85,7 @@ public class PlayerController : MonoBehaviour
         Vector3 wishDir = transform.right * moveInput.x + transform.forward * moveInput.y;
         Vector3 wishVel = wishDir * config.moveSpeed;
 
-        if (isGrounded)
+        if (mover.isGrounded)
             GroundAcceleration();
         else
             AirAcceleration();
@@ -136,8 +129,6 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
-        mover.IsGrounded = isGrounded;
         mover.Move(velocity);
     }
-
 }
