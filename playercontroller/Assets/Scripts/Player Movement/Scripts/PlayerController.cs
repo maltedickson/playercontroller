@@ -89,45 +89,28 @@ public class PlayerController : MonoBehaviour
         Vector3 wishDir = transform.right * moveInput.x + transform.forward * moveInput.y;
         Vector3 wishVel = wishDir * config.moveSpeed;
 
-        if (mover.isGrounded)
-            GroundAcceleration();
-        else
-            AirAcceleration();
+        Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
+        Vector3 newHorVel;
+
+        if (mover.isGrounded) GroundAcceleration();
+        else AirAcceleration();
+
+        velocity = new Vector3(newHorVel.x, velocity.y, newHorVel.z);
 
         void GroundAcceleration()
         {
-            Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
-
             Vector3 horVelAfterAcceleration = horVel + wishVel * config.maxAcceleration * Time.fixedDeltaTime;
-
-            Vector3 clampedHorVelAfterAcceleration = Vector3.ClampMagnitude(horVelAfterAcceleration, config.moveSpeed);
-
-            velocity = new Vector3(
-                clampedHorVelAfterAcceleration.x,
-                velocity.y,
-                clampedHorVelAfterAcceleration.z
-            );
+            newHorVel = Vector3.ClampMagnitude(horVelAfterAcceleration, config.moveSpeed);
         }
 
         void AirAcceleration()
         {
-            Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
-
             float speed = horVel.magnitude;
-
             float currentSpeedInWishDir = Vector3.Dot(horVel, wishVel);
-
             float addSpeed = Mathf.Clamp(config.moveSpeed - currentSpeedInWishDir, 0f, config.maxAccelerationInAir * Time.fixedDeltaTime);
 
             Vector3 horVelAfterAcceleration = horVel + wishVel * addSpeed;
-
-            Vector3 clampedHorVelAfterAcceleration = Vector3.ClampMagnitude(horVelAfterAcceleration, Mathf.Max(speed, config.moveSpeed));
-
-            velocity = new Vector3(
-                clampedHorVelAfterAcceleration.x,
-                velocity.y,
-                clampedHorVelAfterAcceleration.z
-            );
+            newHorVel = Vector3.ClampMagnitude(horVelAfterAcceleration, Mathf.Max(speed, config.moveSpeed));
         }
     }
 
