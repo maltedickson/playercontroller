@@ -4,15 +4,15 @@ public class PlayerMover : MonoBehaviour
 {
     [SerializeField] PlayerMoverConfig config = null;
 
-    CapsuleCollider collider = null;
+    new CapsuleCollider collider = null;
     Rigidbody rb = null;
 
-    [HideInInspector] public Vector3 velocity { get; private set; }
-
-    [HideInInspector] public bool isGrounded { get; private set; }
+    bool isGrounded = false;
     bool wasGrounded = false;
 
     bool wasFixedUpdateThisFrame = false;
+
+    IMovementModifier[] movementModifiers;
 
     void Awake()
     {
@@ -32,6 +32,7 @@ public class PlayerMover : MonoBehaviour
 
     void Start()
     {
+        movementModifiers = GetComponents<IMovementModifier>();
         SetupRigidbody();
         SetupCollider();
         LimitMaxStepUpHeight();
@@ -68,9 +69,17 @@ public class PlayerMover : MonoBehaviour
         config.maxStepUpHeight = Mathf.Min(config.maxStepUpHeight, config.radius);
     }
 
-    public void Move(Vector3 newVelocity)
+    void FixedUpdate()
     {
         wasFixedUpdateThisFrame = true;
+
+        Vector3 newVelocity = rb.velocity;
+        if (isGrounded) newVelocity.y = 0f;
+
+        foreach (IMovementModifier modifier in movementModifiers)
+        {
+            newVelocity = modifier.ModifyVelocity(newVelocity, isGrounded);
+        }
 
         if (newVelocity.y > 0f)
         {
@@ -78,7 +87,6 @@ public class PlayerMover : MonoBehaviour
             rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
-        velocity = newVelocity;
         rb.velocity = newVelocity;
 
         PreparePhysics();
@@ -160,7 +168,7 @@ public class PlayerMover : MonoBehaviour
 
     void OnCollisionStay(Collision other)
     {
-        if (velocity.y > 0f) return;
+        if (rb.velocity.y > 0f) return;
 
         foreach (ContactPoint contact in other.contacts)
         {
@@ -180,13 +188,11 @@ public class PlayerMover : MonoBehaviour
 
         StickToGround();
         wasGrounded = isGrounded;
-
-        velocity = rb.velocity;
     }
 
     void MoveUp()
     {
-        if (velocity.y > 0f) return;
+        if (rb.velocity.y > 0f) return;
 
         float margin = 0.01f;
         RaycastHit hit;
@@ -210,7 +216,7 @@ public class PlayerMover : MonoBehaviour
 
     void StickToGround()
     {
-        if (!wasGrounded || velocity.y > 0f) return;
+        if (!wasGrounded || rb.velocity.y > 0f) return;
 
         float margin = 0.01f;
         RaycastHit hit;
