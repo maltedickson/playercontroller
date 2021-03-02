@@ -72,13 +72,14 @@ public class PlayerMover : MonoBehaviour
     {
         wasFixedUpdateThisFrame = true;
 
-        velocity = newVelocity;
-        rb.velocity = velocity;
-
-        if (velocity.y > 0f)
+        if (newVelocity.y > 0f)
         {
             isGrounded = false;
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
+
+        velocity = newVelocity;
+        rb.velocity = newVelocity;
 
         PreparePhysics();
 
@@ -179,6 +180,8 @@ public class PlayerMover : MonoBehaviour
 
         StickToGround();
         wasGrounded = isGrounded;
+
+        velocity = rb.velocity;
     }
 
     void MoveUp()

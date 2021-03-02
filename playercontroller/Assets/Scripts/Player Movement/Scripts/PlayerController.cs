@@ -44,6 +44,8 @@ public class PlayerController : MonoBehaviour
 
     void GetInfoFromMover()
     {
+        velocity = mover.velocity;
+
         if (mover.isGrounded)
             velocity.y = 0f;
     }
