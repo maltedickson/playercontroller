@@ -1,10 +1,14 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.InputSystem;
 
 public class PlayerLook : MonoBehaviour
 {
 
     [SerializeField] PlayerLookConfig config;
+    [Space]
+    [SerializeField] InputAction lookInput;
+    Vector2 input = Vector2.zero;
 
     float horizontalRotation = 0f;
     float verticalRotation = 0f;
@@ -13,18 +17,11 @@ public class PlayerLook : MonoBehaviour
     GameObject cameraObject = null;
     Camera cam = null;
 
-    Controls controls;
-    Vector2 mouseDelta = Vector2.zero;
-
-    public void TakeInput(Vector2 mouseDelta)
-    {
-        this.mouseDelta += mouseDelta;
-    }
+    void OnEnable() => lookInput.Enable();
+    void OnDisable() => lookInput.Disable();
 
     void Awake()
     {
-        controls = new Controls();
-
         CreateCameraHolder();
         CreateCameraObject();
         CreateCamera();
@@ -58,9 +55,6 @@ public class PlayerLook : MonoBehaviour
         if (cameraObject.GetComponent<AudioListener>() == null)
             cameraObject.AddComponent<AudioListener>();
     }
-
-    void OnEnable() => controls.Enable();
-    void OnDisable() => controls.Disable();
 
     void Start()
     {
@@ -105,18 +99,18 @@ public class PlayerLook : MonoBehaviour
 
     void Look()
     {
-        horizontalRotation += mouseDelta.x * config.mouseSensitivity;
+        horizontalRotation += input.x * config.mouseSensitivity;
         transform.localEulerAngles = Vector3.up * horizontalRotation;
 
-        verticalRotation = Mathf.Clamp(verticalRotation - mouseDelta.y * config.mouseSensitivity, config.minVerticalRotation, config.maxVerticalRotation);
+        verticalRotation = Mathf.Clamp(verticalRotation - input.y * config.mouseSensitivity, config.minVerticalRotation, config.maxVerticalRotation);
         cameraHolder.localEulerAngles = Vector3.right * verticalRotation;
 
-        mouseDelta = Vector2.zero;
+        input = Vector2.zero;
     }
 
     void Update()
     {
-        TakeInput(controls.Gameplay.Look.ReadValue<Vector2>());
+        input += lookInput.ReadValue<Vector2>();
     }
 
 }

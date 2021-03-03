@@ -4192,8 +4192,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8bc680ddf767f645ba8407e48b372bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jumpHeight: 1
-  gravity: -19.62
   jumpInput:
     m_Name: Jump Input
     m_Type: 0
@@ -4246,7 +4244,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b2266a2b41b7b04d9fb1bbb80386e97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gravity: -19.62
 --- !u!114 &361123654
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4273,6 +4270,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 8555d4ba29f97ee449d7a19c5826d1da, type: 2}
+  lookInput:
+    m_Name: Look Input
+    m_Type: 2
+    m_ExpectedControlType: Vector2
+    m_Id: 0d65eb20-e8f6-4aaa-ac25-90e2f5d17cca
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 36da42fd-4614-4384-8e6d-ea15a074459a
+      m_Path: <Mouse>/delta
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Look Input
+      m_Flags: 0
 --- !u!114 &361123656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4285,13 +4298,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d242df4143c16ab42976b79b09eb9d7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 6
-  maxAcceleration: 10
-  maxAccelerationInAir: 6
   moveInput:
     m_Name: Move Input
-    m_Type: 0
-    m_ExpectedControlType: 
+    m_Type: 2
+    m_ExpectedControlType: Vector2
     m_Id: 118d9e5c-1af3-4697-a242-749410ab0311
     m_Processors: 
     m_Interactions: 
@@ -4348,7 +4358,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8e0d35da296249468b0121fb634cc89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  friction: 0.1
 --- !u!43 &367900438
 Mesh:
   m_ObjectHideFlags: 0

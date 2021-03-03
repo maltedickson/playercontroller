@@ -3,7 +3,6 @@ using UnityEngine.InputSystem;
 
 public class JumpModifier : MonoBehaviour, IMovementModifier
 {
-    [Header("Input")]
     [SerializeField] InputAction jumpInput;
     bool wasJumpPressed = false;
 

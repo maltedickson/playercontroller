@@ -3,18 +3,12 @@ using UnityEngine.InputSystem;
 
 public class AccelerationModifier : MonoBehaviour, IMovementModifier
 {
-    [Header("Input")]
     [SerializeField] InputAction moveInput;
     Vector2 input;
 
-    void OnEnable()
-    {
-        moveInput.Enable();
-    }
-    void OnDisable()
-    {
-        moveInput.Disable();
-    }
+    void OnEnable() => moveInput.Enable();
+    void OnDisable() => moveInput.Disable();
+
     void Update()
     {
         input += moveInput.ReadValue<Vector2>();
@@ -36,7 +30,7 @@ public class AccelerationModifier : MonoBehaviour, IMovementModifier
         else
         {
             float speed = Mathf.Clamp(config.speed - Vector3.Dot(info.CurrentHorizontalVelocity, wishVel), 0f, config.airAcceleration * Time.fixedDeltaTime);
-            Vector3 horVelAfterAcceleration = info.CurrentHorizontalVelocity + wishVel *  speed;
+            Vector3 horVelAfterAcceleration = info.CurrentHorizontalVelocity + wishVel * speed;
 
             newHorVel = Vector3.ClampMagnitude(horVelAfterAcceleration, Mathf.Max(info.CurrentHorizontalVelocity.magnitude, config.speed));
         }

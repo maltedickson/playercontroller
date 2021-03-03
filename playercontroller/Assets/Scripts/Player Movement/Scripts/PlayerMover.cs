@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerMover : MonoBehaviour
@@ -9,7 +10,6 @@ public class PlayerMover : MonoBehaviour
 
     bool isGrounded = false;
     bool wasGrounded = false;
-    bool wasFixedUpdateThisFrame = false;
 
     IMovementModifier[] movementModifiers;
 
@@ -43,12 +43,16 @@ public class PlayerMover : MonoBehaviour
 
     void FixedUpdate()
     {
-        wasFixedUpdateThisFrame = true;
-
         Vector3 newVelocity = playerRb.velocity;
         if (isGrounded) newVelocity.y = 0f;
 
-        ModifierInfo info = new ModifierInfo() { IsGrounded = isGrounded, CurrentVelocity = playerRb.velocity, CurrentHorizontalVelocity = new Vector3(playerRb.velocity.x, 0, playerRb.velocity.z) };
+        ModifierInfo info = new ModifierInfo()
+        {
+            IsGrounded = isGrounded,
+            CurrentVelocity = playerRb.velocity,
+            CurrentHorizontalVelocity = new Vector3(playerRb.velocity.x, 0, playerRb.velocity.z)
+        };
+
         foreach (IMovementModifier modifier in movementModifiers) { newVelocity += modifier.Modify(info, config); }
 
         if (newVelocity.y > 0f)
@@ -62,6 +66,8 @@ public class PlayerMover : MonoBehaviour
         PreparePhysics();
 
         isGrounded = false;
+
+        StartCoroutine(AfterPhysics());
     }
 
     void PreparePhysics()
@@ -141,18 +147,12 @@ public class PlayerMover : MonoBehaviour
         if (playerRb.velocity.y > 0f) return;
 
         foreach (ContactPoint contact in other.contacts)
-        {
-            if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit)
-            {
-                isGrounded = true;
-            }
-        }
+            if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit) isGrounded = true;
     }
 
-    void Update()
+    IEnumerator AfterPhysics()
     {
-        if (!wasFixedUpdateThisFrame) return;
-        wasFixedUpdateThisFrame = false;
+        yield return new WaitForFixedUpdate();
 
         MoveUp();
 
