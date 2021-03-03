@@ -158,69 +158,69 @@ public class PlayerMover : MonoBehaviour
 
         StickToGround();
         wasGrounded = isGrounded;
-    }
 
-    void MoveUp()
-    {
-        if (playerRb.velocity.y > 0f) return;
+        void MoveUp()
+        {
+            if (playerRb.velocity.y > 0f) return;
 
-        float margin = 0.01f;
-        RaycastHit hit;
-        bool isInGround = Physics.SphereCast(
-            transform.position + Vector3.up * (config.maxStepUpHeight + config.radius + margin),
-            config.radius,
-            Vector3.down,
-            out hit,
-            config.maxStepUpHeight + margin,
-            ~0,
-            QueryTriggerInteraction.Ignore
-        );
+            float margin = 0.01f;
+            RaycastHit hit;
+            bool isInGround = Physics.SphereCast(
+                transform.position + Vector3.up * (config.maxStepUpHeight + config.radius + margin),
+                config.radius,
+                Vector3.down,
+                out hit,
+                config.maxStepUpHeight + margin,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
 
-        if (!isInGround) return;
+            if (!isInGround) return;
 
-        if (hit.point.y - transform.position.y > config.maxStepUpHeight) return;
+            if (hit.point.y - transform.position.y > config.maxStepUpHeight) return;
 
-        transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
-        isGrounded = true;
-    }
+            transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
+            isGrounded = true;
+        }
 
-    void StickToGround()
-    {
-        if (!wasGrounded || playerRb.velocity.y > 0f) return;
+        void StickToGround()
+        {
+            if (!wasGrounded || playerRb.velocity.y > 0f) return;
 
-        float margin = 0.01f;
-        RaycastHit hit;
-        bool isGroundBelow = Physics.SphereCast(
-            transform.position + Vector3.up * (config.radius + margin),
-            config.radius,
-            Vector3.down,
-            out hit,
-            config.maxStepDownHeight + margin,
-            ~0,
-            QueryTriggerInteraction.Ignore
-        );
-        bool isGroundBelowCenter = Physics.Raycast(
-            transform.position + Vector3.up * margin,
-            Vector3.down,
-            config.maxStepDownHeight + margin,
-            ~0,
-            QueryTriggerInteraction.Ignore
-        );
+            float margin = 0.01f;
+            RaycastHit hit;
+            bool isGroundBelow = Physics.SphereCast(
+                transform.position + Vector3.up * (config.radius + margin),
+                config.radius,
+                Vector3.down,
+                out hit,
+                config.maxStepDownHeight + margin,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
+            bool isGroundBelowCenter = Physics.Raycast(
+                transform.position + Vector3.up * margin,
+                Vector3.down,
+                config.maxStepDownHeight + margin,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
 
-        if (!isGroundBelow || !isGroundBelowCenter) return;
+            if (!isGroundBelow || !isGroundBelowCenter) return;
 
-        Vector3 newPos = transform.position + Vector3.down * Mathf.Max(0f, (hit.distance * 0.9f - margin));
-        Collider[] collidersAtNewPos = Physics.OverlapCapsule(
-            newPos + Vector3.up * config.radius,
-            newPos + Vector3.up * (config.height - config.radius),
-            config.radius,
-            ~0,
-            QueryTriggerInteraction.Ignore
-        );
+            Vector3 newPos = transform.position + Vector3.down * Mathf.Max(0f, (hit.distance * 0.9f - margin));
+            Collider[] collidersAtNewPos = Physics.OverlapCapsule(
+                newPos + Vector3.up * config.radius,
+                newPos + Vector3.up * (config.height - config.radius),
+                config.radius,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
 
-        if (collidersAtNewPos.Length > 1) return;
+            if (collidersAtNewPos.Length > 1) return;
 
-        transform.position = newPos;
-        isGrounded = true;
+            transform.position = newPos;
+            isGrounded = true;
+        }
     }
 }
