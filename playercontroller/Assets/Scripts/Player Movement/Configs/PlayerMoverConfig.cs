@@ -6,6 +6,7 @@ public class PlayerMoverConfig : ScriptableObject
     [Header("Physics")]
     [SerializeField] public float gravity = -19.62f;
     [SerializeField] public float jumpForce = 1f;
+    [SerializeField] public float maxForce = 15f;
     [SerializeField] public float friction = 0.1f;
 
     [Header("Collider")]
