@@ -2,13 +2,9 @@ using UnityEngine;
 
 public class GravityModifier : MonoBehaviour, IMovementModifier
 {
-    [SerializeField] float gravity = -19.62f;
-
-    public Vector3 ModifyVelocity(Vector3 velocity, bool isGrounded)
+    public Vector3 Modify(ModifierInfo info, PlayerMoverConfig config)
     {
-        if (isGrounded) return velocity;
-
-        velocity += Vector3.up * gravity * Time.fixedDeltaTime;
-        return velocity;
+        if (!info.IsGrounded) return Vector3.up * config.gravity * Time.fixedDeltaTime;
+        else return Vector3.zero;
     }
 }

@@ -2,5 +2,12 @@ using UnityEngine;
 
 public interface IMovementModifier
 {
-    Vector3 ModifyVelocity(Vector3 velocity, bool isGrounded);
+    Vector3 Modify(ModifierInfo info, PlayerMoverConfig config);
+}
+
+public class ModifierInfo
+{
+    public bool IsGrounded { get; set; }
+    public Vector3 CurrentHorizontalVelocity { get; set; }
+    public Vector3 CurrentVelocity { get; set; }
 }

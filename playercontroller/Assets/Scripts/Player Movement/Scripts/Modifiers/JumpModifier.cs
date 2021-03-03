@@ -3,9 +3,6 @@ using UnityEngine.InputSystem;
 
 public class JumpModifier : MonoBehaviour, IMovementModifier
 {
-    [SerializeField] float jumpHeight = 1;
-    [SerializeField] float gravity = -19.62f;
-
     [Header("Input")]
     [SerializeField] InputAction jumpInput;
     bool wasJumpPressed = false;
@@ -18,14 +15,12 @@ public class JumpModifier : MonoBehaviour, IMovementModifier
         jumpInput.performed += _ => wasJumpPressed = true;
     }
 
-    public Vector3 ModifyVelocity(Vector3 velocity, bool isGrounded)
+    public Vector3 Modify(ModifierInfo info, PlayerMoverConfig config)
     {
-        if (!wasJumpPressed) return velocity;
+        if (!wasJumpPressed) return Vector3.zero;
         wasJumpPressed = false;
+        if (!info.IsGrounded) return Vector3.zero;
 
-        if (!isGrounded) return velocity;
-
-        velocity.y = Mathf.Sqrt(jumpHeight * 2f * -gravity);
-        return velocity;
+        return new Vector3(0, Mathf.Sqrt(config.jumpForce * 2f * -config.gravity), 0);
     }
 }

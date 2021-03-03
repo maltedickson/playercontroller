@@ -2,21 +2,16 @@ using UnityEngine;
 
 public class FrictionModifier : MonoBehaviour, IMovementModifier
 {
-    [SerializeField] float friction = 0.1f;
-
-    public Vector3 ModifyVelocity(Vector3 velocity, bool isGrounded)
+    public Vector3 Modify(ModifierInfo info, PlayerMoverConfig config)
     {
-        if (!isGrounded) return velocity;
+        if (!info.IsGrounded || info.CurrentHorizontalVelocity.magnitude == 0) return Vector3.zero;
 
-        Vector3 horVel = new Vector3(velocity.x, 0f, velocity.z);
+        float speed = info.CurrentHorizontalVelocity.magnitude;
+        float drop = speed / config.friction * Time.fixedDeltaTime;
 
-        float speed = horVel.magnitude;
-        if (speed == 0f) return velocity;
+        Vector3 newHorVel = info.CurrentHorizontalVelocity * Mathf.Max(speed - drop, 0f) / speed;
+        Vector3 value = new Vector3(newHorVel.x, 0, newHorVel.z) - info.CurrentHorizontalVelocity;
 
-        float drop = speed / friction * Time.fixedDeltaTime;
-
-        Vector3 newHorVel = horVel * Mathf.Max(speed - drop, 0f) / speed;
-
-        return new Vector3(newHorVel.x, velocity.y, newHorVel.z);
+        return value;
     }
 }

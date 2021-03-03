@@ -4,68 +4,40 @@ public class PlayerMover : MonoBehaviour
 {
     [SerializeField] PlayerMoverConfig config = null;
 
-    new CapsuleCollider collider = null;
-    Rigidbody rb = null;
+    CapsuleCollider playerCol = null;
+    Rigidbody playerRb = null;
 
     bool isGrounded = false;
     bool wasGrounded = false;
-
     bool wasFixedUpdateThisFrame = false;
 
     IMovementModifier[] movementModifiers;
 
-    void Awake()
-    {
-        CreateRigidbody();
-        CreateCollider();
-    }
-
-    void CreateRigidbody()
-    {
-        rb = GetComponent<Rigidbody>() ? GetComponent<Rigidbody>() : gameObject.AddComponent<Rigidbody>();
-    }
-
-    void CreateCollider()
-    {
-        collider = GetComponent<CapsuleCollider>() ? GetComponent<CapsuleCollider>() : gameObject.AddComponent<CapsuleCollider>();
-    }
-
     void Start()
     {
+        Initialize();
+    }
+
+    void Initialize()
+    {
+        playerRb = GetComponent<Rigidbody>() ? GetComponent<Rigidbody>() : gameObject.AddComponent<Rigidbody>();
+        playerRb.mass = 75f;
+        playerRb.drag = 0f;
+        playerRb.angularDrag = 0f;
+        playerRb.useGravity = false;
+        playerRb.isKinematic = false;
+        playerRb.interpolation = RigidbodyInterpolation.None;
+        playerRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        playerRb.constraints = RigidbodyConstraints.FreezeRotation;
+
+        playerCol = GetComponent<CapsuleCollider>() ? GetComponent<CapsuleCollider>() : gameObject.AddComponent<CapsuleCollider>();
+        playerCol.height = config.height;
+        playerCol.radius = config.radius;
+        playerCol.center = Vector3.up * config.height / 2f;
+        playerCol.material = config.noFrictionPhysicMaterial;
+
         movementModifiers = GetComponents<IMovementModifier>();
-        SetupRigidbody();
-        SetupCollider();
-        LimitMaxStepUpHeight();
-    }
 
-    void SetupRigidbody()
-    {
-        rb.mass = 75f;
-
-        rb.drag = 0f;
-        rb.angularDrag = 0f;
-
-        rb.useGravity = false;
-        rb.isKinematic = false;
-
-        rb.interpolation = RigidbodyInterpolation.None;
-        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-
-        rb.constraints = RigidbodyConstraints.FreezeRotation;
-    }
-
-    void SetupCollider()
-    {
-        collider.height = config.height;
-        collider.radius = config.radius;
-
-        collider.center = Vector3.up * config.height / 2f;
-
-        collider.material = config.noFrictionPhysicMaterial;
-    }
-
-    void LimitMaxStepUpHeight()
-    {
         config.maxStepUpHeight = Mathf.Min(config.maxStepUpHeight, config.radius);
     }
 
@@ -73,21 +45,19 @@ public class PlayerMover : MonoBehaviour
     {
         wasFixedUpdateThisFrame = true;
 
-        Vector3 newVelocity = rb.velocity;
+        Vector3 newVelocity = playerRb.velocity;
         if (isGrounded) newVelocity.y = 0f;
 
-        foreach (IMovementModifier modifier in movementModifiers)
-        {
-            newVelocity = modifier.ModifyVelocity(newVelocity, isGrounded);
-        }
+        ModifierInfo info = new ModifierInfo() { IsGrounded = isGrounded, CurrentVelocity = playerRb.velocity, CurrentHorizontalVelocity = new Vector3(playerRb.velocity.x, 0, playerRb.velocity.z) };
+        foreach (IMovementModifier modifier in movementModifiers) { newVelocity += modifier.Modify(info, config); }
 
         if (newVelocity.y > 0f)
         {
             isGrounded = false;
-            rb.constraints = RigidbodyConstraints.FreezeRotation;
+            playerRb.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
-        rb.velocity = newVelocity;
+        playerRb.velocity = newVelocity;
 
         PreparePhysics();
 
@@ -97,11 +67,11 @@ public class PlayerMover : MonoBehaviour
     void PreparePhysics()
     {
         SetColliderHeight(config.height);
-        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        playerRb.constraints = RigidbodyConstraints.FreezeRotation;
 
         if (!isGrounded) return;
 
-        rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
+        playerRb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
 
         if (!ShouldStepUp()) return;
 
@@ -110,8 +80,8 @@ public class PlayerMover : MonoBehaviour
 
         void SetColliderHeight(float height)
         {
-            collider.height = height;
-            collider.center = Vector3.up * (config.height - height / 2f);
+            playerCol.height = height;
+            playerCol.center = Vector3.up * (config.height - height / 2f);
         }
 
         bool ShouldStepUp()
@@ -133,7 +103,7 @@ public class PlayerMover : MonoBehaviour
 
             bool IsObjectInFront(out RaycastHit hit)
             {
-                Vector3 moveDir = rb.velocity.normalized;
+                Vector3 moveDir = playerRb.velocity.normalized;
 
                 Vector3 checkStart = transform.position + moveDir * -0.1f;
 
@@ -143,7 +113,7 @@ public class PlayerMover : MonoBehaviour
                     config.radius,
                     moveDir,
                     out hit,
-                    rb.velocity.magnitude * Time.fixedDeltaTime + 0.1f,
+                    playerRb.velocity.magnitude * Time.fixedDeltaTime + 0.1f,
                     ~0,
                     QueryTriggerInteraction.Ignore
                 );
@@ -151,7 +121,7 @@ public class PlayerMover : MonoBehaviour
 
             bool WouldBeInGround(out RaycastHit hit)
             {
-                Vector3 newPos = transform.position + rb.velocity * Time.fixedDeltaTime;
+                Vector3 newPos = transform.position + playerRb.velocity * Time.fixedDeltaTime;
                 float margin = 0.01f;
                 return Physics.SphereCast(
                     newPos + Vector3.up * (config.maxStepUpHeight + config.radius + margin),
@@ -168,7 +138,7 @@ public class PlayerMover : MonoBehaviour
 
     void OnCollisionStay(Collision other)
     {
-        if (rb.velocity.y > 0f) return;
+        if (playerRb.velocity.y > 0f) return;
 
         foreach (ContactPoint contact in other.contacts)
         {
@@ -192,7 +162,7 @@ public class PlayerMover : MonoBehaviour
 
     void MoveUp()
     {
-        if (rb.velocity.y > 0f) return;
+        if (playerRb.velocity.y > 0f) return;
 
         float margin = 0.01f;
         RaycastHit hit;
@@ -216,7 +186,7 @@ public class PlayerMover : MonoBehaviour
 
     void StickToGround()
     {
-        if (!wasGrounded || rb.velocity.y > 0f) return;
+        if (!wasGrounded || playerRb.velocity.y > 0f) return;
 
         float margin = 0.01f;
         RaycastHit hit;
