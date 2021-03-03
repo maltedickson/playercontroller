@@ -144,7 +144,7 @@ public class PlayerMover : MonoBehaviour
 
     void OnCollisionStay(Collision other)
     {
-        if (playerRb.velocity.y > 0f) return;
+        if (playerRb.velocity.y > 0f && wasGrounded) return;
 
         foreach (ContactPoint contact in other.contacts)
             if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit) isGrounded = true;
@@ -155,14 +155,11 @@ public class PlayerMover : MonoBehaviour
         yield return new WaitForFixedUpdate();
 
         MoveUp();
-
         StickToGround();
         wasGrounded = isGrounded;
 
         void MoveUp()
         {
-            if (playerRb.velocity.y > 0f) return;
-
             float margin = 0.01f;
             RaycastHit hit;
             bool isInGround = Physics.SphereCast(
