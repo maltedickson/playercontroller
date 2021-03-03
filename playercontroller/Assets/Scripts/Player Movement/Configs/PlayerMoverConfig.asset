@@ -12,9 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43dab427a8c01c04994556937bfae43f, type: 3}
   m_Name: PlayerMoverConfig
   m_EditorClassIdentifier: 
+  gravity: -19.62
+  jumpForce: 1
+  friction: 0.1
   height: 2
   radius: 0.5
   noFrictionPhysicMaterial: {fileID: 13400000, guid: 7932bce62fe1b1246bafa85a18a97e22, type: 2}
+  speed: 6
+  groundAcceleration: 10
+  airAcceleration: 6
   slopeLimit: 50
   maxStepUpHeight: 0.3
   maxStepDownHeight: 0.4
