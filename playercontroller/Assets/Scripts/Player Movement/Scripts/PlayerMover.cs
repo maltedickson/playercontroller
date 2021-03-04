@@ -5,16 +5,17 @@ using UnityEngine.InputSystem;
 public class PlayerMover : MonoBehaviour
 {
     [SerializeField] PlayerMoverConfig config = null;
-
+    [Space]
     [SerializeField] InputAction crouchStart;
     [SerializeField] InputAction crouchEnd;
+    [Space]
+    [SerializeField] Transform cameraHolder;
     bool isCrouchDown = false;
     bool isCrouching = false;
     float currentHeight;
     float heightVelocity = 0f;
     float speedVelocity = 0f;
     float currentMaxMoveSpeed;
-    [SerializeField] Transform cameraHolder;
 
     CapsuleCollider playerCol = null;
     Rigidbody playerRb = null;
