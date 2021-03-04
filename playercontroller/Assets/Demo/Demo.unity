@@ -5156,11 +5156,11 @@ GameObject:
   - component: {fileID: 361123652}
   - component: {fileID: 361123655}
   - component: {fileID: 361123654}
+  - component: {fileID: 361123658}
   - component: {fileID: 361123653}
   - component: {fileID: 361123651}
   - component: {fileID: 361123657}
   - component: {fileID: 361123656}
-  - component: {fileID: 361123658}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -12025,6 +12025,7 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Shoot Input
       m_Flags: 0
+  rocketSpeed: 18
 --- !u!1 &867869121
 GameObject:
   m_ObjectHideFlags: 0
@@ -25228,7 +25229,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh21832
+  m_Name: pb_Mesh19984
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2

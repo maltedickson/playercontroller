@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class Rocket : MonoBehaviour
 {
-    [SerializeField] float maxDistance = 5f;
-    [SerializeField] float maxPower = 20f;
+    [SerializeField] float maxDistance = 10f;
+    [SerializeField] float maxPower = 40f;
 
     Rigidbody rb = null;
     float speed = 0f;
@@ -60,11 +60,8 @@ public class Rocket : MonoBehaviour
             Rigidbody rb = forceModifier.GetComponent<Rigidbody>();
             Vector3 center = rb.worldCenterOfMass;
 
-            Collider collider = forceModifier.GetComponent<Collider>();
-            Vector3 closestPoint = collider.ClosestPoint(explosionPosition);
-
             Vector3 direction = ((center - explosionPosition) * 100f).normalized;
-            float distance = Vector3.Distance(explosionPosition, closestPoint);
+            float distance = Vector3.Distance(explosionPosition, center);
             float power = Mathf.Max(0f, (maxPower * (maxDistance - distance)) / (maxDistance * (distance + 1f)));
 
             forceModifier.AddForce(direction * power);
