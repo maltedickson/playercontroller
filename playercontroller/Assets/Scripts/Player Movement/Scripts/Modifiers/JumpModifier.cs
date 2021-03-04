@@ -11,7 +11,7 @@ public class JumpModifier : MonoBehaviour, IMovementModifier
 
     void Start()
     {
-        jumpInput.performed += _ => wasJumpPressed = true;
+        jumpInput.started += _ => wasJumpPressed = true;
     }
 
     public Vector3 Modify(ModifierInfo info, PlayerMoverConfig config)
@@ -19,6 +19,7 @@ public class JumpModifier : MonoBehaviour, IMovementModifier
         if (!wasJumpPressed) return Vector3.zero;
         wasJumpPressed = false;
         if (!info.IsGrounded) return Vector3.zero;
+        if (info.IsCrouching) return Vector3.zero;
 
         return new Vector3(0, Mathf.Sqrt(config.jumpForce * 2f * -config.gravity), 0);
     }

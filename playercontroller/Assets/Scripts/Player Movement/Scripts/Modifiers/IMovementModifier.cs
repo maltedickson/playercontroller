@@ -10,4 +10,6 @@ public class ModifierInfo
     public bool IsGrounded { get; set; }
     public Vector3 CurrentHorizontalVelocity { get; set; }
     public Vector3 CurrentVelocity { get; set; }
+    public float CurrentMaxMoveSpeed { get; set; }
+    public bool IsCrouching { get; set; }
 }

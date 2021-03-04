@@ -20,19 +20,19 @@ public class AccelerationModifier : MonoBehaviour, IMovementModifier
         Vector3 wishDir = transform.right * input.x + transform.forward * input.y;
         input = Vector2.zero;
 
-        Vector3 wishVel = wishDir * config.speed;
+        Vector3 wishVel = wishDir * info.CurrentMaxMoveSpeed;
         Vector3 newHorVel;
 
         if (info.IsGrounded)
         {
-            newHorVel = Vector3.ClampMagnitude(info.CurrentHorizontalVelocity + wishVel * config.groundAcceleration * Time.fixedDeltaTime, config.speed);
+            newHorVel = Vector3.ClampMagnitude(info.CurrentHorizontalVelocity + wishVel * config.groundAcceleration * Time.fixedDeltaTime, info.CurrentMaxMoveSpeed);
         }
         else
         {
-            float speed = Mathf.Clamp(config.speed - Vector3.Dot(info.CurrentHorizontalVelocity, wishVel), 0f, config.airAcceleration * Time.fixedDeltaTime);
+            float speed = Mathf.Clamp(info.CurrentMaxMoveSpeed - Vector3.Dot(info.CurrentHorizontalVelocity, wishVel), 0f, config.airAcceleration * Time.fixedDeltaTime);
             Vector3 horVelAfterAcceleration = info.CurrentHorizontalVelocity + wishVel * speed;
 
-            newHorVel = Vector3.ClampMagnitude(horVelAfterAcceleration, Mathf.Max(info.CurrentHorizontalVelocity.magnitude, config.speed));
+            newHorVel = Vector3.ClampMagnitude(horVelAfterAcceleration, Mathf.Max(info.CurrentHorizontalVelocity.magnitude, info.CurrentMaxMoveSpeed));
         }
 
         return new Vector3(newHorVel.x, 0, newHorVel.z) - info.CurrentHorizontalVelocity;

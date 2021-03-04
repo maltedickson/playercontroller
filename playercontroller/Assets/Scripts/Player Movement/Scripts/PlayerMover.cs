@@ -1,9 +1,20 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMover : MonoBehaviour
 {
     [SerializeField] PlayerMoverConfig config = null;
+
+    [SerializeField] InputAction crouchStart;
+    [SerializeField] InputAction crouchEnd;
+    bool isCrouchDown = false;
+    bool isCrouching = false;
+    float currentHeight;
+    float heightVelocity = 0f;
+    float speedVelocity = 0f;
+    float currentMaxMoveSpeed;
+    [SerializeField] Transform cameraHolder;
 
     CapsuleCollider playerCol = null;
     Rigidbody playerRb = null;
@@ -13,8 +24,23 @@ public class PlayerMover : MonoBehaviour
 
     IMovementModifier[] movementModifiers;
 
+    void OnEnable()
+    {
+        crouchStart.Enable();
+        crouchEnd.Enable();
+    }
+
+    void OnDisable()
+    {
+        crouchStart.Disable();
+        crouchEnd.Disable();
+    }
+
     void Start()
     {
+        crouchStart.performed += _ => isCrouchDown = true;
+        crouchEnd.performed += _ => isCrouchDown = false;
+
         Initialize();
     }
 
@@ -43,6 +69,8 @@ public class PlayerMover : MonoBehaviour
 
     void FixedUpdate()
     {
+        Crouching();
+
         Vector3 newVelocity = playerRb.velocity;
         if (isGrounded) newVelocity.y = 0f;
 
@@ -50,7 +78,9 @@ public class PlayerMover : MonoBehaviour
         {
             IsGrounded = isGrounded,
             CurrentVelocity = playerRb.velocity,
-            CurrentHorizontalVelocity = new Vector3(playerRb.velocity.x, 0, playerRb.velocity.z)
+            CurrentHorizontalVelocity = new Vector3(playerRb.velocity.x, 0, playerRb.velocity.z),
+            CurrentMaxMoveSpeed = currentMaxMoveSpeed,
+            IsCrouching = isCrouching
         };
 
         foreach (IMovementModifier modifier in movementModifiers) { newVelocity += modifier.Modify(info, config); }
@@ -70,9 +100,53 @@ public class PlayerMover : MonoBehaviour
         StartCoroutine(AfterPhysics());
     }
 
+    void Crouching()
+    {
+        SetIsCrouching();
+        SetCurrentHeight();
+        SetCurrentSpeed();
+        cameraHolder.transform.localPosition = Vector3.up * (currentHeight - 0.5f);
+
+        void SetIsCrouching()
+        {
+            if (isCrouchDown)
+            {
+                isCrouching = true;
+            }
+            else if (isCrouching)
+            {
+                isCrouching = false;
+
+                Collider[] colliders = Physics.OverlapCapsule(
+                    transform.position + Vector3.up * config.radius,
+                    transform.position + Vector3.up * (config.height - config.radius),
+                    config.radius - 0.01f,
+                    ~0,
+                    QueryTriggerInteraction.Ignore
+                );
+                foreach (Collider collider in colliders)
+                {
+                    if (collider.transform != transform) isCrouching = true;
+                }
+            }
+        }
+
+        void SetCurrentHeight()
+        {
+            float targetHeight = isCrouching ? config.height * config.crouchHeightMultiplier : config.height;
+            currentHeight = Mathf.SmoothDamp(currentHeight, targetHeight, ref heightVelocity, config.crouchTransitionTime);
+        }
+
+        void SetCurrentSpeed()
+        {
+            float targetSpeed = isCrouching ? config.speed * config.crouchMoveSpeedMultiplier : config.speed;
+            currentMaxMoveSpeed = Mathf.SmoothDamp(currentMaxMoveSpeed, targetSpeed, ref speedVelocity, config.crouchTransitionTime);
+        }
+    }
+
     void PreparePhysics()
     {
-        SetColliderHeight(config.height);
+        SetColliderHeight(currentHeight);
         playerRb.constraints = RigidbodyConstraints.FreezeRotation;
 
         if (!isGrounded) return;
@@ -81,13 +155,13 @@ public class PlayerMover : MonoBehaviour
 
         if (!ShouldStepUp()) return;
 
-        SetColliderHeight(config.height - config.maxStepUpHeight);
+        SetColliderHeight(currentHeight - config.maxStepUpHeight);
 
 
         void SetColliderHeight(float height)
         {
             playerCol.height = height;
-            playerCol.center = Vector3.up * (config.height - height / 2f);
+            playerCol.center = Vector3.up * (currentHeight - height / 2f);
         }
 
         bool ShouldStepUp()

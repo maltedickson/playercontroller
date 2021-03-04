@@ -14,6 +14,11 @@ public class PlayerMoverConfig : ScriptableObject
     [SerializeField] public float radius = 0.5f;
     [SerializeField] public PhysicMaterial noFrictionPhysicMaterial = null;
 
+    [Header("Crouching")]
+    [SerializeField, Range(0.5f, 1f)] public float crouchHeightMultiplier = 0.75f;
+    [SerializeField] public float crouchMoveSpeedMultiplier = 0.33f;
+    [SerializeField] public float crouchTransitionTime = 0.1f;
+
     [Header("Movement")]
     [SerializeField] public float speed = 6f;
     [SerializeField] public float groundAcceleration = 10f;
