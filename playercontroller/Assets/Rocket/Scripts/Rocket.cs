@@ -65,6 +65,10 @@ public class Rocket : MonoBehaviour
             float power = Mathf.Max(0f, (maxPower * (maxDistance - distance)) / (maxDistance * (distance + 1f)));
 
             forceModifier.AddForce(direction * power);
+
+            PlayerHealth playerHealth = forceModifier.GetComponent<PlayerHealth>();
+            if (!playerHealth) return;
+            playerHealth.AddHealth(-Mathf.CeilToInt(power));
         }
 
         Destroy(gameObject);
