@@ -110,25 +110,18 @@ public class PlayerMover : MonoBehaviour
 
         void SetIsCrouching()
         {
-            if (isCrouchDown)
-            {
-                isCrouching = true;
-            }
-            else if (isCrouching)
-            {
-                isCrouching = false;
+            isCrouching = isCrouchDown;
 
-                Collider[] colliders = Physics.OverlapCapsule(
-                    transform.position + Vector3.up * config.radius,
-                    transform.position + Vector3.up * (config.height - config.radius),
-                    config.radius - 0.01f,
-                    ~0,
-                    QueryTriggerInteraction.Ignore
-                );
-                foreach (Collider collider in colliders)
-                {
-                    if (collider.transform != transform) isCrouching = true;
-                }
+            Collider[] colliders = Physics.OverlapCapsule(
+                transform.position + Vector3.up * config.radius,
+                transform.position + Vector3.up * (config.height - config.radius),
+                config.radius - 0.01f,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
+            foreach (Collider collider in colliders)
+            {
+                if (collider.transform != transform) isCrouching = true;
             }
         }
 
@@ -251,8 +244,6 @@ public class PlayerMover : MonoBehaviour
 
             if (hit.point.y - transform.position.y > config.maxStepUpHeight) return;
 
-            if (Vector3.Angle(hit.normal, Vector3.up) > config.slopeLimit) return;
-
             transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
             isGrounded = true;
         }
@@ -281,8 +272,6 @@ public class PlayerMover : MonoBehaviour
             );
 
             if (!isGroundBelow || !isGroundBelowCenter) return;
-
-            if (Vector3.Angle(hit.normal, Vector3.up) > config.slopeLimit) return;
 
             Vector3 newPos = transform.position + Vector3.down * Mathf.Max(0f, (hit.distance * 0.9f - margin));
             Collider[] collidersAtNewPos = Physics.OverlapCapsule(
