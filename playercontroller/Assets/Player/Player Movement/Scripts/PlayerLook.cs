@@ -81,7 +81,7 @@ public class PlayerLook : MonoBehaviour
 
     void SetupCamera()
     {
-        cam.fieldOfView = 90f;
+        cam.fieldOfView = config.fieldOfView;
         cam.nearClipPlane = 0.01f;
         cam.GetUniversalAdditionalCameraData().renderPostProcessing = true;
     }

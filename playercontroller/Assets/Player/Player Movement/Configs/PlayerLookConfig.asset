@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: PlayerLookConfig
   m_EditorClassIdentifier: 
   mouseSensitivity: 0.05
+  fieldOfView: 90
   minVerticalRotation: -90
   maxVerticalRotation: 90
   cameraOffset: 1.5
