@@ -112,10 +112,23 @@ public class PlayerMover : MonoBehaviour
         {
             isCrouching = isCrouchDown;
 
+            // RaycastHit hit;
+            // bool isPushingDown = Physics.SphereCast(
+            //     transform.position + Vector3.up * config.radius,
+            //     config.radius - 0.05f,
+            //     Vector3.up,
+            //     out hit,
+            //     config.height - config.radius * 2f,
+            //     ~0,
+            //     QueryTriggerInteraction.Ignore
+            // );
+
+            // if (isPushingDown) isCrouching = true;
+
             Collider[] colliders = Physics.OverlapCapsule(
                 transform.position + Vector3.up * config.radius,
                 transform.position + Vector3.up * (config.height - config.radius),
-                config.radius - 0.01f,
+                config.radius - 0.1f,
                 ~0,
                 QueryTriggerInteraction.Ignore
             );
