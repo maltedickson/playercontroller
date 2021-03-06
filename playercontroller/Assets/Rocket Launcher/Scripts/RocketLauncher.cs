@@ -33,14 +33,11 @@ public class RocketLauncher : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(wantsToShoot);
-
         if (wantsToShoot && !isShooting) StartCoroutine(Shoot());
     }
 
     IEnumerator Shoot()
     {
-        Debug.Log("shoot");
         isShooting = true;
         Rocket rocket = Instantiate(rocketPrefab, transform.position, transform.rotation).GetComponent<Rocket>();
         rocket.SetSpeed(rocketSpeed);
