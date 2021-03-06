@@ -251,6 +251,8 @@ public class PlayerMover : MonoBehaviour
 
             if (hit.point.y - transform.position.y > config.maxStepUpHeight) return;
 
+            if (Vector3.Angle(hit.normal, Vector3.up) > config.slopeLimit) return;
+
             transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
             isGrounded = true;
         }
@@ -279,6 +281,8 @@ public class PlayerMover : MonoBehaviour
             );
 
             if (!isGroundBelow || !isGroundBelowCenter) return;
+
+            if (Vector3.Angle(hit.normal, Vector3.up) > config.slopeLimit) return;
 
             Vector3 newPos = transform.position + Vector3.down * Mathf.Max(0f, (hit.distance * 0.9f - margin));
             Collider[] collidersAtNewPos = Physics.OverlapCapsule(

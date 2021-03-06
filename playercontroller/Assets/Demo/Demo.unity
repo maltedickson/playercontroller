@@ -5690,6 +5690,9 @@ MonoBehaviour:
       m_Action: Crouch End
       m_Flags: 0
   cameraHolder: {fileID: 1551645227}
+  fallDamage:
+    playerHealth: {fileID: 361123659}
+    minSpeed: 15
 --- !u!114 &361123655
 MonoBehaviour:
   m_ObjectHideFlags: 0
