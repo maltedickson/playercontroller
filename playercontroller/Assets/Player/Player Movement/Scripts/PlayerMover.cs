@@ -164,7 +164,7 @@ public class PlayerMover : MonoBehaviour
             if (!IsObjectInFront(out hit)) return false;
 
             Rigidbody otherRb = hit.transform.GetComponent<Rigidbody>();
-            if (otherRb != null) return false;
+            if (otherRb != null && !otherRb.isKinematic) return false;
 
             RaycastHit groundHit;
             if (!WouldBeInGround(out groundHit)) return false;
