@@ -13,13 +13,15 @@ MonoBehaviour:
   m_Name: PlayerMoverConfig
   m_EditorClassIdentifier: 
   gravity: -19.62
-  jumpForce: 1
+  jumpHeight: 1
   maxForce: 15
   friction: 0.1
   height: 2
-  crouchHeightMultiplier: 0.75
   radius: 0.5
   noFrictionPhysicMaterial: {fileID: 13400000, guid: 7932bce62fe1b1246bafa85a18a97e22, type: 2}
+  crouchHeightMultiplier: 0.75
+  crouchMoveSpeedMultiplier: 0.33
+  crouchTransitionTime: 0.1
   speed: 6
   groundAcceleration: 10
   airAcceleration: 6
