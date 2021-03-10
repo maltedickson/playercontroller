@@ -5309,14 +5309,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b86366ac743ddf24ba8514a1080a12df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _points:
+  wayPoints:
   - _transform: {fileID: 799176036}
     _waitTime: 0.1
   - _transform: {fileID: 1624774805}
     _waitTime: 0.1
-  _speed: 2
-  _moveMode: 1
-  _isMovingForward: 1
+  moveSpeed: 4
+  moveMode: 1
+  isMovingForward: 1
 --- !u!43 &391580761
 Mesh:
   m_ObjectHideFlags: 0
@@ -20977,16 +20977,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b86366ac743ddf24ba8514a1080a12df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _points:
+  wayPoints:
   - _transform: {fileID: 533015894}
     _waitTime: 0.5
   - _transform: {fileID: 149763231}
     _waitTime: 0
   - _transform: {fileID: 1456520514}
     _waitTime: 0.5
-  _speed: 4
-  _moveMode: 1
-  _isMovingForward: 1
+  moveSpeed: 4
+  moveMode: 1
+  isMovingForward: 1
 --- !u!1001 &1425702756
 PrefabInstance:
   m_ObjectHideFlags: 0
