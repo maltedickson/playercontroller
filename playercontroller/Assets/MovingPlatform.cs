@@ -5,81 +5,81 @@ using UnityEngine;
 public class MovingPlatform : MonoBehaviour
 {
 
-    [SerializeField] private WayPoint[] _points = null;
-    private int _targetIndex = 0;
-    private bool _isUpdatingTargetIndex = false;
+    [SerializeField] WayPoint[] wayPoints = null;
+    int targetIndex = 0;
+    bool isUpdatingTargetIndex = false;
 
-    [SerializeField] private float _speed = 4f;
+    [SerializeField] float moveSpeed = 4f;
 
     enum MoveMode { Circle, BackAndForth }
-    [SerializeField] private MoveMode _moveMode = MoveMode.Circle;
-    [SerializeField] private bool _isMovingForward = true;
+    [SerializeField] MoveMode moveMode = MoveMode.Circle;
+    [SerializeField] bool isMovingForward = true;
 
-    private void Awake()
+    void Awake()
     {
     }
 
-    private void Start()
+    void Start()
     {
-        foreach (WayPoint point in _points) point.SetPosition();
+        foreach (WayPoint point in wayPoints) point.SetPosition();
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        if (_points.Length == 0) return;
+        if (wayPoints.Length == 0) return;
 
-        switch (_moveMode)
+        switch (moveMode)
         {
             case MoveMode.Circle:
-                if (_targetIndex >= _points.Length)
+                if (targetIndex >= wayPoints.Length)
                 {
-                    _targetIndex = 0;
+                    targetIndex = 0;
                 }
-                else if (_targetIndex < 0)
+                else if (targetIndex < 0)
                 {
-                    _targetIndex = _points.Length - 1;
+                    targetIndex = wayPoints.Length - 1;
                 }
                 break;
 
             case MoveMode.BackAndForth:
-                if (_targetIndex >= _points.Length)
+                if (targetIndex >= wayPoints.Length)
                 {
-                    _targetIndex = _points.Length - 1;
-                    _isMovingForward = false;
+                    targetIndex = wayPoints.Length - 1;
+                    isMovingForward = false;
                 }
-                else if (_targetIndex < 0)
+                else if (targetIndex < 0)
                 {
-                    _targetIndex = 0;
-                    _isMovingForward = true;
+                    targetIndex = 0;
+                    isMovingForward = true;
                 }
                 break;
         }
 
-        Vector3 newPos = Vector3.MoveTowards(transform.position, _points[_targetIndex].Position(), _speed * Time.fixedDeltaTime);
+        Vector3 newPos = Vector3.MoveTowards(transform.position, wayPoints[targetIndex].Position(), moveSpeed * Time.fixedDeltaTime);
         Vector3 movement = newPos - transform.position;
         transform.position = transform.position + movement;
 
-        if (transform.position != _points[_targetIndex].Position() || _isUpdatingTargetIndex) return;
+        if (transform.position != wayPoints[targetIndex].Position() || isUpdatingTargetIndex) return;
 
-        StartCoroutine(SetTargetIndex(_isMovingForward ? _targetIndex + 1 : _targetIndex - 1, _points[_targetIndex].WaitTime()));
+        StartCoroutine(SetTargetIndex(isMovingForward ? targetIndex + 1 : targetIndex - 1, wayPoints[targetIndex].WaitTime()));
     }
 
-    private IEnumerator SetTargetIndex(int newTargetIndex, float time)
+    IEnumerator SetTargetIndex(int newTargetIndex, float time)
     {
-        _isUpdatingTargetIndex = true;
+        isUpdatingTargetIndex = true;
 
         yield return new WaitForSeconds(time);
-        _targetIndex = newTargetIndex;
+        targetIndex = newTargetIndex;
 
-        _isUpdatingTargetIndex = false;
+        isUpdatingTargetIndex = false;
     }
 
     [System.Serializable]
-    private class WayPoint
+    class WayPoint
     {
-        [SerializeField] private Transform _transform = null;
-        [SerializeField] private float _waitTime = 0f;
-        private Vector3 _position = Vector3.zero;
+        [SerializeField] Transform _transform = null;
+        [SerializeField] float _waitTime = 0f;
+        Vector3 _position = Vector3.zero;
 
         public void SetPosition()
         {
