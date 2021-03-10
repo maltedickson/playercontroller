@@ -112,12 +112,7 @@ public class PlayerMover : MonoBehaviour
         Vector3 newVelocity = playerRb.velocity;
         if (isGrounded) newVelocity.y = 0f;
 
-        newVelocity += playerGravity.ApplyGravity(isGrounded);
-        newVelocity += playerJump.Jump(wantsToJump, isGrounded, crouching.isCrouching);
-        newVelocity += playerFriction.ApplyFriction(newVelocity, isGrounded);
-        newVelocity += playerAcceleration.Accelerate(moveInput.normalized, newVelocity, currentMaxMoveSpeed, isGrounded);
-        moveInput = Vector2.zero;
-        newVelocity += playerForce.ApplyForce();
+        newVelocity = UpdateVelocity(newVelocity);
 
         if (newVelocity.y > 0f)
         {
@@ -147,19 +142,24 @@ public class PlayerMover : MonoBehaviour
         currentMaxMoveSpeed = Mathf.SmoothDamp(currentMaxMoveSpeed, targetSpeed, ref speedVelocity, config.crouchTransitionTime);
     }
 
+    Vector3 UpdateVelocity(Vector3 velocity)
+    {
+        velocity += playerGravity.ApplyGravity(isGrounded);
+        velocity += playerJump.Jump(wantsToJump, isGrounded, crouching.isCrouching);
+        velocity += playerFriction.ApplyFriction(velocity, isGrounded);
+        velocity += playerAcceleration.Accelerate(moveInput.normalized, velocity, currentMaxMoveSpeed, isGrounded);
+        moveInput = Vector2.zero;
+        velocity += playerForce.ApplyForce();
+        return velocity;
+    }
+
     void PreparePhysics()
     {
         SetColliderHeight(crouching.currentHeight);
         playerRb.constraints = RigidbodyConstraints.FreezeRotation;
-
         if (!isGrounded) return;
-
         playerRb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
-
-        if (!ShouldStepUp()) return;
-
-        SetColliderHeight(crouching.currentHeight - config.maxStepUpHeight);
-
+        if (ShouldStepUp()) SetColliderHeight(crouching.currentHeight - config.maxStepUpHeight);
 
         void SetColliderHeight(float height)
         {
