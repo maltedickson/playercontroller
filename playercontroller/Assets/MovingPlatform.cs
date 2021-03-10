@@ -15,16 +15,25 @@ public class MovingPlatform : MonoBehaviour
     [SerializeField] MoveMode moveMode = MoveMode.Circle;
     [SerializeField] bool isMovingForward = true;
 
+    public Vector3 movement { get; private set; }
+    public float deltaTime { get; private set; }
+
+    Rigidbody rb = null;
+
     void Awake()
     {
+        rb = GetComponent<Rigidbody>();
+        if (rb == null) rb = gameObject.AddComponent<Rigidbody>();
     }
 
     void Start()
     {
+        rb.isKinematic = true;
+
         foreach (WayPoint point in wayPoints) point.SetPosition();
     }
 
-    void FixedUpdate()
+    public void Move()
     {
         if (wayPoints.Length == 0) return;
 
@@ -55,11 +64,13 @@ public class MovingPlatform : MonoBehaviour
                 break;
         }
 
-        Vector3 newPos = Vector3.MoveTowards(transform.position, wayPoints[targetIndex].Position(), moveSpeed * Time.fixedDeltaTime);
-        Vector3 movement = newPos - transform.position;
-        transform.position = transform.position + movement;
+        Vector3 newPos = Vector3.MoveTowards(rb.position, wayPoints[targetIndex].Position(), moveSpeed * Time.fixedDeltaTime);
+        movement = newPos - rb.position;
+        rb.position = rb.position + movement;
 
-        if (transform.position != wayPoints[targetIndex].Position() || isUpdatingTargetIndex) return;
+        deltaTime = Time.fixedDeltaTime;
+
+        if (rb.position != wayPoints[targetIndex].Position() || isUpdatingTargetIndex) return;
 
         StartCoroutine(SetTargetIndex(isMovingForward ? targetIndex + 1 : targetIndex - 1, wayPoints[targetIndex].WaitTime()));
     }

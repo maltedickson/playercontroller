@@ -36,6 +36,10 @@ public class PlayerMover : MonoBehaviour
     PlayerAcceleration playerAcceleration;
     PlayerForce playerForce;
 
+    // MovingPlatform previousMovingPlatform;
+    MovingPlatform movingPlatform;
+    Vector3 previousMovingPlatformVelocity = Vector3.zero;
+
     public void AddForce(Vector3 force)
     {
         playerForce.AddForce(force);
@@ -105,6 +109,11 @@ public class PlayerMover : MonoBehaviour
 
     void FixedUpdate()
     {
+        MovePlatforms();
+        MoveWithPlatform();
+        // previousMovingPlatform = movingPlatform;
+        previousMovingPlatformVelocity = movingPlatform != null ? movingPlatform.movement / movingPlatform.deltaTime : Vector3.zero;
+
         Crouching();
 
         SetCurrentSpeed();
@@ -127,6 +136,8 @@ public class PlayerMover : MonoBehaviour
         isGrounded = false;
 
         StartCoroutine(AfterPhysics());
+
+        movingPlatform = null;
     }
 
     void Crouching()
@@ -224,7 +235,13 @@ public class PlayerMover : MonoBehaviour
         if (playerRb.velocity.y > 0f && wasGrounded) return;
 
         foreach (ContactPoint contact in other.contacts)
-            if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit) isGrounded = true;
+        {
+            if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit)
+            {
+                isGrounded = true;
+                movingPlatform = GetMovingPlatform(other.transform);
+            }
+        }
     }
 
     IEnumerator AfterPhysics()
@@ -255,6 +272,7 @@ public class PlayerMover : MonoBehaviour
 
             transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
             isGrounded = true;
+            if (movingPlatform == null) movingPlatform = GetMovingPlatform(hit.transform);
         }
 
         void StickToGround()
@@ -295,7 +313,41 @@ public class PlayerMover : MonoBehaviour
 
             transform.position = newPos;
             isGrounded = true;
+            if (movingPlatform == null) movingPlatform = GetMovingPlatform(hit.transform);
         }
+    }
+
+    void MovePlatforms()
+    {
+        MovingPlatform[] platforms = FindObjectsOfType<MovingPlatform>();
+        foreach (MovingPlatform platform in platforms) platform.Move();
+    }
+
+    void MoveWithPlatform()
+    {
+        if (movingPlatform == null)
+        {
+            if (previousMovingPlatformVelocity != Vector3.zero)
+            {
+                AddForce(previousMovingPlatformVelocity);
+            }
+            return;
+        }
+
+        transform.position = transform.position + movingPlatform.movement;
+    }
+
+    MovingPlatform GetMovingPlatform(Transform transform)
+    {
+        MovingPlatform platform = null;
+
+        while (transform != null && platform == null)
+        {
+            platform = transform.GetComponent<MovingPlatform>();
+            transform = transform.parent;
+        }
+
+        return platform;
     }
 
     void Update()

@@ -5314,7 +5314,7 @@ MonoBehaviour:
     _waitTime: 0.1
   - _transform: {fileID: 1624774805}
     _waitTime: 0.1
-  moveSpeed: 4
+  moveSpeed: 2
   moveMode: 1
   isMovingForward: 1
 --- !u!43 &391580761
@@ -26443,7 +26443,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh20010
+  m_Name: pb_Mesh20006
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
