@@ -25,7 +25,7 @@ public class Crouching
     {
         isCrouching = wantsToCrouch;
 
-        float margin = 0.05f;
+        float margin = 0.1f;
 
         RaycastHit hit;
         bool hasToCrouch = Physics.SphereCast(
@@ -33,7 +33,7 @@ public class Crouching
             radius - margin,
             Vector3.up,
             out hit,
-            normalHeight - radius * 2f + margin * 2f,
+            normalHeight - radius * 2f + margin,
             ~0,
             QueryTriggerInteraction.Ignore
         );

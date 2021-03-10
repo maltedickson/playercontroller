@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class ForceModifier : MonoBehaviour, IMovementModifier
+public class PlayerForce
 {
     Vector3 currentForce = Vector3.zero;
 
-    public Vector3 Modify(ModifierInfo info, PlayerMoverConfig config)
+    public Vector3 ApplyForce()
     {
         Vector3 currentForce = this.currentForce;
         this.currentForce = Vector3.zero;

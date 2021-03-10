@@ -9,6 +9,13 @@ public class PlayerMover : MonoBehaviour
     [SerializeField] InputAction crouchStart;
     [SerializeField] InputAction crouchEnd;
     [Space]
+    [SerializeField] InputAction jumpStart;
+    [SerializeField] InputAction jumpEnd;
+    bool wantsToJump = false;
+    [Space]
+    [SerializeField] InputAction moveInputAction;
+    Vector2 moveInput = Vector2.zero;
+    [Space]
     [SerializeField] Transform cameraHolder;
 
     bool isCrouchDown = false;
@@ -21,20 +28,39 @@ public class PlayerMover : MonoBehaviour
     bool isGrounded = false;
     bool wasGrounded = false;
 
-    IMovementModifier[] movementModifiers;
-
     Crouching crouching;
+
+    PlayerGravity playerGravity;
+    PlayerJump playerJump;
+    PlayerFriction playerFriction;
+    PlayerAcceleration playerAcceleration;
+    PlayerForce playerForce;
+
+    public void AddForce(Vector3 force)
+    {
+        playerForce.AddForce(force);
+    }
 
     void OnEnable()
     {
         crouchStart.Enable();
         crouchEnd.Enable();
+
+        jumpStart.Enable();
+        jumpEnd.Enable();
+
+        moveInputAction.Enable();
     }
 
     void OnDisable()
     {
         crouchStart.Disable();
         crouchEnd.Disable();
+
+        jumpStart.Disable();
+        jumpEnd.Disable();
+
+        moveInputAction.Disable();
     }
 
     void Start()
@@ -42,7 +68,16 @@ public class PlayerMover : MonoBehaviour
         crouchStart.performed += _ => isCrouchDown = true;
         crouchEnd.performed += _ => isCrouchDown = false;
 
+        jumpStart.performed += _ => wantsToJump = true;
+        jumpEnd.performed += _ => wantsToJump = false;
+
         crouching = new Crouching(config.height, config.height * config.crouchHeightMultiplier, config.crouchTransitionTime);
+
+        playerGravity = new PlayerGravity(config.gravity);
+        playerJump = new PlayerJump(config.jumpHeight, config.gravity);
+        playerFriction = new PlayerFriction(config.friction);
+        playerAcceleration = new PlayerAcceleration(config.groundAcceleration, config.airAcceleration, transform);
+        playerForce = new PlayerForce();
 
         Initialize();
     }
@@ -65,8 +100,6 @@ public class PlayerMover : MonoBehaviour
         playerCol.center = Vector3.up * config.height / 2f;
         playerCol.material = config.noFrictionPhysicMaterial;
 
-        movementModifiers = GetComponents<IMovementModifier>();
-
         config.maxStepUpHeight = Mathf.Min(config.maxStepUpHeight, config.radius);
     }
 
@@ -79,16 +112,12 @@ public class PlayerMover : MonoBehaviour
         Vector3 newVelocity = playerRb.velocity;
         if (isGrounded) newVelocity.y = 0f;
 
-        ModifierInfo info = new ModifierInfo()
-        {
-            IsGrounded = isGrounded,
-            CurrentVelocity = playerRb.velocity,
-            CurrentHorizontalVelocity = new Vector3(playerRb.velocity.x, 0, playerRb.velocity.z),
-            CurrentMaxMoveSpeed = currentMaxMoveSpeed,
-            IsCrouching = crouching.isCrouching
-        };
-
-        foreach (IMovementModifier modifier in movementModifiers) { newVelocity += modifier.Modify(info, config); }
+        newVelocity += playerGravity.ApplyGravity(isGrounded);
+        newVelocity += playerJump.Jump(wantsToJump, isGrounded, crouching.isCrouching);
+        newVelocity += playerFriction.ApplyFriction(newVelocity, isGrounded);
+        newVelocity += playerAcceleration.Accelerate(moveInput.normalized, newVelocity, currentMaxMoveSpeed, isGrounded);
+        moveInput = Vector2.zero;
+        newVelocity += playerForce.ApplyForce();
 
         if (newVelocity.y > 0f)
         {
@@ -267,5 +296,10 @@ public class PlayerMover : MonoBehaviour
             transform.position = newPos;
             isGrounded = true;
         }
+    }
+
+    void Update()
+    {
+        moveInput += moveInputAction.ReadValue<Vector2>();
     }
 }

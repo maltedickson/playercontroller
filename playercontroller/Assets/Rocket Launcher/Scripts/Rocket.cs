@@ -54,19 +54,19 @@ public class Rocket : MonoBehaviour
 
     void Explode(Vector3 explosionPosition)
     {
-        ForceModifier[] forceModifiers = FindObjectsOfType<ForceModifier>();
-        foreach (ForceModifier forceModifier in forceModifiers)
+        PlayerMover[] players = FindObjectsOfType<PlayerMover>();
+        foreach (PlayerMover player in players)
         {
-            Rigidbody rb = forceModifier.GetComponent<Rigidbody>();
+            Rigidbody rb = player.GetComponent<Rigidbody>();
             Vector3 center = rb.worldCenterOfMass;
 
             Vector3 direction = ((center - explosionPosition) * 100f).normalized;
             float distance = Vector3.Distance(explosionPosition, center);
             float power = Mathf.Max(0f, (maxPower * (maxDistance - distance)) / (maxDistance * (distance + 1f)));
 
-            forceModifier.AddForce(direction * power);
+            player.AddForce(direction * power);
 
-            PlayerHealth playerHealth = forceModifier.GetComponent<PlayerHealth>();
+            PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             if (!playerHealth) return;
             playerHealth.AddHealth(-Mathf.CeilToInt(power));
         }
