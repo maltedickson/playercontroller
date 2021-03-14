@@ -36,8 +36,8 @@ public class PlayerMover : MonoBehaviour
     PlayerAcceleration playerAcceleration;
     PlayerForce playerForce;
 
-    // MovingPlatform previousMovingPlatform;
-    MovingPlatform movingPlatform;
+    MovingPlatform movingPlatform = null;
+    MovingPlatform previousMovingPlatform = null;
     Vector3 previousMovingPlatformVelocity = Vector3.zero;
 
     public void AddForce(Vector3 force)
@@ -111,7 +111,7 @@ public class PlayerMover : MonoBehaviour
     {
         MovePlatforms();
         MoveWithPlatform();
-        // previousMovingPlatform = movingPlatform;
+        previousMovingPlatform = movingPlatform;
         previousMovingPlatformVelocity = movingPlatform != null ? movingPlatform.movement / movingPlatform.deltaTime : Vector3.zero;
 
         Crouching();
@@ -327,11 +327,13 @@ public class PlayerMover : MonoBehaviour
     {
         if (movingPlatform == null)
         {
-            if (previousMovingPlatformVelocity != Vector3.zero)
-            {
-                AddForce(previousMovingPlatformVelocity);
-            }
+            if (previousMovingPlatform != null) AddForce(previousMovingPlatformVelocity);
             return;
+        }
+
+        if (previousMovingPlatform == null)
+        {
+            AddForce(-movingPlatform.movement / movingPlatform.deltaTime);
         }
 
         transform.position = transform.position + movingPlatform.movement;

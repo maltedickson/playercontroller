@@ -66,7 +66,7 @@ public class MovingPlatform : MonoBehaviour
 
         Vector3 newPos = Vector3.MoveTowards(rb.position, wayPoints[targetIndex].Position(), moveSpeed * Time.fixedDeltaTime);
         movement = newPos - rb.position;
-        rb.position = rb.position + movement;
+        rb.MovePosition(rb.position + movement);
 
         deltaTime = Time.fixedDeltaTime;
 
