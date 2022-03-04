@@ -8,7 +8,8 @@ public class PlayerMover : MonoBehaviour
     bool wantsToJump = false;
     Vector2 moveInput = Vector2.zero;
     [Space]
-    [SerializeField] Transform cameraHolder;
+    [SerializeField] Transform camPos;
+    [SerializeField] Transform orientation;
 
     bool isCrouchDown = false;
     float speedVelocity = 0f;
@@ -44,7 +45,7 @@ public class PlayerMover : MonoBehaviour
         playerGravity = new PlayerGravity(config.gravity);
         playerJump = new PlayerJump(config.jumpHeight, config.gravity);
         playerFriction = new PlayerFriction(config.friction);
-        playerAcceleration = new PlayerAcceleration(config.groundAcceleration, config.airAcceleration, transform);
+        playerAcceleration = new PlayerAcceleration(config.groundAcceleration, config.airAcceleration, orientation);
         playerForce = new PlayerForce();
 
         Initialize();
@@ -58,7 +59,7 @@ public class PlayerMover : MonoBehaviour
         playerRb.angularDrag = 0f;
         playerRb.useGravity = false;
         playerRb.isKinematic = false;
-        playerRb.interpolation = RigidbodyInterpolation.None;
+        playerRb.interpolation = RigidbodyInterpolation.Interpolate;
         playerRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         playerRb.constraints = RigidbodyConstraints.FreezeRotation;
 
@@ -112,7 +113,7 @@ public class PlayerMover : MonoBehaviour
     {
         crouching.SetIsCrouching(isCrouchDown, transform, config.radius);
         crouching.UpdateHeight();
-        cameraHolder.transform.localPosition = Vector3.up * (crouching.currentHeight - 0.5f);
+        camPos.localPosition = Vector3.up * (crouching.currentHeight - 0.5f);
     }
 
     void SetCurrentSpeed()
@@ -237,7 +238,8 @@ public class PlayerMover : MonoBehaviour
 
             if (hit.point.y - transform.position.y > config.maxStepUpHeight) return;
 
-            transform.position = transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance);
+            playerRb.MovePosition(transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance));
+
             isGrounded = true;
             if (movingPlatform == null) movingPlatform = GetMovingPlatform(hit.transform);
         }
@@ -278,7 +280,7 @@ public class PlayerMover : MonoBehaviour
 
             if (collidersAtNewPos.Length > 1) return;
 
-            transform.position = newPos;
+            playerRb.MovePosition(newPos);
             isGrounded = true;
             if (movingPlatform == null) movingPlatform = GetMovingPlatform(hit.transform);
         }

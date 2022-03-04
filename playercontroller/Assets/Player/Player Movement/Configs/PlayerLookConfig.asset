@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 539977373b08a2340affeaa132963360, type: 3}
   m_Name: PlayerLookConfig
   m_EditorClassIdentifier: 
-  mouseSensitivity: 0.05
+  mouseSensitivity: 1
   fieldOfView: 90
   minVerticalRotation: -90
   maxVerticalRotation: 90
-  cameraOffset: 1.5
