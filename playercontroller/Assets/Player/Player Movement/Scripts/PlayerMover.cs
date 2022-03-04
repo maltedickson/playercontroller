@@ -29,8 +29,6 @@ public class PlayerMover : MonoBehaviour
     PlayerAcceleration playerAcceleration;
     PlayerForce playerForce;
 
-    MovingPlatform movingPlatform = null;
-    MovingPlatform previousMovingPlatform = null;
     Vector3 previousMovingPlatformVelocity = Vector3.zero;
 
     public void AddForce(Vector3 force)
@@ -78,11 +76,6 @@ public class PlayerMover : MonoBehaviour
 
     void FixedUpdate()
     {
-        MovePlatforms();
-        MoveWithPlatform();
-        previousMovingPlatform = movingPlatform;
-        previousMovingPlatformVelocity = movingPlatform != null ? movingPlatform.movement / movingPlatform.deltaTime : Vector3.zero;
-
         Crouching();
 
         SetCurrentSpeed();
@@ -105,8 +98,6 @@ public class PlayerMover : MonoBehaviour
         isGrounded = false;
 
         StartCoroutine(AfterPhysics());
-
-        movingPlatform = null;
     }
 
     void Crouching()
@@ -207,7 +198,6 @@ public class PlayerMover : MonoBehaviour
             if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit)
             {
                 isGrounded = true;
-                movingPlatform = GetMovingPlatform(other.transform);
             }
         }
     }
@@ -241,7 +231,6 @@ public class PlayerMover : MonoBehaviour
             playerRb.MovePosition(transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance));
 
             isGrounded = true;
-            if (movingPlatform == null) movingPlatform = GetMovingPlatform(hit.transform);
         }
 
         void StickToGround()
@@ -282,42 +271,6 @@ public class PlayerMover : MonoBehaviour
 
             playerRb.MovePosition(newPos);
             isGrounded = true;
-            if (movingPlatform == null) movingPlatform = GetMovingPlatform(hit.transform);
         }
-    }
-
-    void MovePlatforms()
-    {
-        MovingPlatform[] platforms = FindObjectsOfType<MovingPlatform>();
-        foreach (MovingPlatform platform in platforms) platform.Move();
-    }
-
-    void MoveWithPlatform()
-    {
-        if (movingPlatform == null)
-        {
-            if (previousMovingPlatform != null) AddForce(previousMovingPlatformVelocity);
-            return;
-        }
-
-        if (previousMovingPlatform == null)
-        {
-            AddForce(-movingPlatform.movement / movingPlatform.deltaTime);
-        }
-
-        transform.position = transform.position + movingPlatform.movement;
-    }
-
-    MovingPlatform GetMovingPlatform(Transform transform)
-    {
-        MovingPlatform platform = null;
-
-        while (transform != null && platform == null)
-        {
-            platform = transform.GetComponent<MovingPlatform>();
-            transform = transform.parent;
-        }
-
-        return platform;
     }
 }
