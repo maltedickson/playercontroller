@@ -5,15 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerMover : MonoBehaviour
 {
     [SerializeField] PlayerMoverConfig config = null;
-    // [Space]
-    // [SerializeField] InputAction crouchStart;
-    // [SerializeField] InputAction crouchEnd;
-    // [Space]
-    // [SerializeField] InputAction jumpStart;
-    // [SerializeField] InputAction jumpEnd;
     bool wantsToJump = false;
-    // [Space]
-    // [SerializeField] InputAction moveInputAction;
     Vector2 moveInput = Vector2.zero;
     [Space]
     [SerializeField] Transform cameraHolder;
@@ -45,36 +37,8 @@ public class PlayerMover : MonoBehaviour
         playerForce.AddForce(force);
     }
 
-    // void OnEnable()
-    // {
-    //     crouchStart.Enable();
-    //     crouchEnd.Enable();
-
-    //     jumpStart.Enable();
-    //     jumpEnd.Enable();
-
-    //     moveInputAction.Enable();
-    // }
-
-    // void OnDisable()
-    // {
-    //     crouchStart.Disable();
-    //     crouchEnd.Disable();
-
-    //     jumpStart.Disable();
-    //     jumpEnd.Disable();
-
-    //     moveInputAction.Disable();
-    // }
-
     void Start()
     {
-        // crouchStart.performed += _ => isCrouchDown = true;
-        // crouchEnd.performed += _ => isCrouchDown = false;
-
-        // jumpStart.performed += _ => wantsToJump = true;
-        // jumpEnd.performed += _ => wantsToJump = false;
-
         crouching = new Crouching(config.height, config.height * config.crouchHeightMultiplier, config.crouchTransitionTime);
 
         playerGravity = new PlayerGravity(config.gravity);
@@ -163,7 +127,6 @@ public class PlayerMover : MonoBehaviour
         velocity += playerJump.Jump(wantsToJump, isGrounded, crouching.isCrouching);
         velocity += playerFriction.ApplyFriction(velocity, isGrounded);
         velocity += playerAcceleration.Accelerate(moveInput.normalized, velocity, currentMaxMoveSpeed, isGrounded);
-        // moveInput = Vector2.zero;
         velocity += playerForce.ApplyForce();
         return velocity;
     }
@@ -355,9 +318,4 @@ public class PlayerMover : MonoBehaviour
 
         return platform;
     }
-
-    // void Update()
-    // {
-    //     moveInput += moveInputAction.ReadValue<Vector2>();
-    // }
 }
