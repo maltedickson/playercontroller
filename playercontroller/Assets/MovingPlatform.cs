@@ -29,11 +29,17 @@ public class MovingPlatform : MonoBehaviour
     void Start()
     {
         rb.isKinematic = true;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
 
-        foreach (WayPoint point in wayPoints) point.SetPosition();
+        foreach (WayPoint point in wayPoints) point.ClearParent();
     }
 
-    public void Move()
+    void FixedUpdate()
+    {
+        Move();
+    }
+
+    void Move()
     {
         if (wayPoints.Length == 0) return;
 
@@ -64,15 +70,15 @@ public class MovingPlatform : MonoBehaviour
                 break;
         }
 
-        Vector3 newPos = Vector3.MoveTowards(rb.position, wayPoints[targetIndex].Position(), moveSpeed * Time.fixedDeltaTime);
+        Vector3 newPos = Vector3.MoveTowards(rb.position, wayPoints[targetIndex].Position, moveSpeed * Time.fixedDeltaTime);
         movement = newPos - rb.position;
         rb.MovePosition(rb.position + movement);
 
         deltaTime = Time.fixedDeltaTime;
 
-        if (rb.position != wayPoints[targetIndex].Position() || isUpdatingTargetIndex) return;
+        if (rb.position != wayPoints[targetIndex].Position || isUpdatingTargetIndex) return;
 
-        StartCoroutine(SetTargetIndex(isMovingForward ? targetIndex + 1 : targetIndex - 1, wayPoints[targetIndex].WaitTime()));
+        StartCoroutine(SetTargetIndex(isMovingForward ? targetIndex + 1 : targetIndex - 1, wayPoints[targetIndex].WaitTime));
     }
 
     IEnumerator SetTargetIndex(int newTargetIndex, float time)
@@ -85,6 +91,28 @@ public class MovingPlatform : MonoBehaviour
         isUpdatingTargetIndex = false;
     }
 
+    void OnDrawGizmos()
+    {
+        if (moveMode == MoveMode.Circle)
+        {
+            for (int i = 0; i < wayPoints.Length; i++)
+            {
+                WayPoint point = wayPoints[i];
+                WayPoint next = wayPoints[(i + 1) % wayPoints.Length];
+                Gizmos.DrawLine(point.Position, next.Position);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < wayPoints.Length - 1; i++)
+            {
+                WayPoint point = wayPoints[i];
+                WayPoint next = wayPoints[i + 1];
+                Gizmos.DrawLine(point.Position, next.Position);
+            }
+        }
+    }
+
     [System.Serializable]
     class WayPoint
     {
@@ -92,19 +120,19 @@ public class MovingPlatform : MonoBehaviour
         [SerializeField] float _waitTime = 0f;
         Vector3 _position = Vector3.zero;
 
-        public void SetPosition()
+        public void ClearParent()
         {
-            _position = _transform.position;
+            _transform.parent = null;
         }
 
-        public Vector3 Position()
+        public Vector3 Position
         {
-            return _position;
+            get { return _transform.position; }
         }
 
-        public float WaitTime()
+        public float WaitTime
         {
-            return _waitTime;
+            get { return _waitTime; }
         }
     }
 
