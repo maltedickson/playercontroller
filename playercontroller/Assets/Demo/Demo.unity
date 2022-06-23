@@ -5059,6 +5059,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: d0b295a12cb1eeb439cf572334932251, type: 2}
   camPos: {fileID: 1092444547}
   orientation: {fileID: 1519794553}
+  groundFollow: {fileID: 1918933547}
 --- !u!114 &361123659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29422,6 +29423,36 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &1918933546
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1918933547}
+  m_Layer: 0
+  m_Name: Ground Follow
+  m_TagString: Untagged
+  m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1918933547
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918933546}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1982197844
 GameObject:
   m_ObjectHideFlags: 0

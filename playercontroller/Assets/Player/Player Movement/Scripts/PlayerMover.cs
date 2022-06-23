@@ -10,6 +10,7 @@ public class PlayerMover : MonoBehaviour
     [Space]
     [SerializeField] Transform camPos;
     [SerializeField] Transform orientation;
+    [SerializeField] Transform groundFollow;
 
     bool isCrouchDown = false;
     float speedVelocity = 0f;
@@ -96,6 +97,7 @@ public class PlayerMover : MonoBehaviour
         PreparePhysics();
 
         isGrounded = false;
+        groundFollow.transform.parent = null;
 
         StartCoroutine(AfterPhysics());
     }
@@ -198,6 +200,9 @@ public class PlayerMover : MonoBehaviour
             if (Vector3.Angle(contact.normal, Vector3.up) <= config.slopeLimit)
             {
                 isGrounded = true;
+                groundFollow.parent = contact.otherCollider.transform;
+                groundFollow.position = contact.point;
+                groundFollow.rotation = orientation.rotation;
             }
         }
     }
@@ -231,6 +236,9 @@ public class PlayerMover : MonoBehaviour
             playerRb.MovePosition(transform.position + Vector3.up * (config.maxStepUpHeight + margin - hit.distance));
 
             isGrounded = true;
+            groundFollow.parent = hit.transform.parent;
+            groundFollow.position = hit.point;
+            groundFollow.rotation = orientation.rotation;
         }
 
         void StickToGround()
@@ -271,6 +279,9 @@ public class PlayerMover : MonoBehaviour
 
             playerRb.MovePosition(newPos);
             isGrounded = true;
+            groundFollow.parent = hit.transform.parent;
+            groundFollow.position = hit.point;
+            groundFollow.rotation = orientation.rotation;
         }
     }
 }
